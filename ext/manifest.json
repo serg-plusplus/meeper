@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "version": "0.0.1",
+  "name": "Meet Trans",
+  "short_name": "Meet Trans",
+  "description": "Meet Trans",
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Meet Trans"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
+  },
+  "host_permissions": ["*://meet.google.com/*-*-*"],
+  "optional_host_permissions": ["*://*/*", "<all_urls>"],
+  "current_locale": "en_GB",
+  "default_locale": "en",
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "declarativeContent",
+    "activeTab",
+    "storage",
+    "alarms",
+    "scripting",
+    "declarativeNetRequest"
+  ]
+}

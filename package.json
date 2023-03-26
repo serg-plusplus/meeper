@@ -1,0 +1,16 @@
+{
+  "name": "meet-trans",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "cross-env NODE_ENV=development yarn bundle",
+    "build": "cross-env NODE_ENV=production yarn bundle",
+    "bundle": "rimraf ext/scripts && node bundle"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.225",
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.17.13",
+    "rimraf": "^4.4.1"
+  }
+}
