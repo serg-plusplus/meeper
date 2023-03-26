@@ -16,7 +16,6 @@
   },
   "host_permissions": ["*://meet.google.com/*-*-*"],
   "optional_host_permissions": ["*://*/*", "<all_urls>"],
-  "current_locale": "en_GB",
   "default_locale": "en",
   "icons": {
     "16": "icon-16.png",
