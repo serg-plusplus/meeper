@@ -3,7 +3,7 @@ import { registerContentScript } from "./lib/registerContentScript";
 registerContentScript();
 
 if (process.env.NODE_ENV === "development") {
-  import("./lib/hotreloadObserver")
+  import("./_dev/hotreloadObserver")
     .then(({ initHotReloadTab }) => initHotReloadTab())
     .catch(console.error);
 }

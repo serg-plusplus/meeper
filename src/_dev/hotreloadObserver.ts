@@ -1,4 +1,4 @@
-const HOTRELOAD_TAB_URL = chrome.runtime.getURL("hotreload.html");
+const HOTRELOAD_TAB_URL = chrome.runtime.getURL("assets/_dev/hotreload.html");
 
 export async function initHotReloadTab() {
   const existing = await chrome.tabs.query({ url: `${HOTRELOAD_TAB_URL}**` });

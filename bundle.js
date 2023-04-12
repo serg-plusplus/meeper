@@ -1,4 +1,6 @@
 const esbuild = require("esbuild");
+const { clean: cleanPlugin } = require("esbuild-plugin-clean");
+const { copy: copyPlugin } = require("esbuild-plugin-copy");
 const postCssPlugin = require("esbuild-style-plugin");
 
 const { NODE_ENV = "development" } = process.env;
@@ -14,7 +16,7 @@ const entryPoints = [
   "content.ts",
   "welcome.ts",
   "meet.tsx",
-  DEV && "hotreload.ts",
+  DEV && "_dev/hotreload.ts",
 ]
   .filter(Boolean)
   .map((p) => `src/${p}`);
@@ -35,6 +37,9 @@ const entryPoints = [
       })
     ),
     plugins: [
+      cleanPlugin({
+        patterns: ["ext/assets"],
+      }),
       postCssPlugin({
         postcss: {
           plugins: [
@@ -43,6 +48,14 @@ const entryPoints = [
           ].filter(Boolean),
         },
       }),
+      DEV &&
+        copyPlugin({
+          assets: {
+            from: ["src/_dev/hotreload.html"],
+            to: ["./_dev"],
+          },
+          watch: true,
+        }),
       {
         name: "success-logger",
         setup(build) {
@@ -53,7 +66,7 @@ const entryPoints = [
           });
         },
       },
-    ],
+    ].filter(Boolean),
   });
 
   if (DEV) {
