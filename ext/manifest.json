@@ -5,7 +5,7 @@
   "short_name": "Meet Trans",
   "description": "Meet Trans",
   "background": {
-    "service_worker": "scripts/background.js"
+    "service_worker": "assets/background.js"
   },
   "action": {
     "default_popup": "popup.html",
@@ -24,10 +24,12 @@
   },
   "permissions": [
     "declarativeContent",
+    "tabs",
     "activeTab",
     "storage",
     "alarms",
     "scripting",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "tabCapture"
   ]
 }

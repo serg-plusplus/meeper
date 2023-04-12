@@ -3,6 +3,8 @@
     "module": "esnext",
     "target": "es2019",
     "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,

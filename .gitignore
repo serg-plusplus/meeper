@@ -1,2 +1,12 @@
+ext/assets
+
+.env.*
+
 node_modules
-ext/scripts
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.DS_Store
+/.idea
