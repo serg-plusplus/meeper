@@ -1,7 +1,4 @@
 import { render } from "preact";
+import Meet from "./components/Meet";
 
-function App() {
-  return <div className="p-48">Hello gyro</div>;
-}
-
-render(<App />, document.getElementById("root")!);
+render(<Meet />, document.getElementById("root")!);
