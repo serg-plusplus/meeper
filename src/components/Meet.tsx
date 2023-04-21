@@ -70,11 +70,14 @@ export default function Meet() {
 
       wspr.set_status("");
 
-      stopAudioCaptureRef.current = captureAudio(streams, (audio) => {
-        if (instance) {
-          wspr.set_audio(instance, audio);
+      stopAudioCaptureRef.current = captureAudio(
+        { ...streams, offset: true },
+        (audio) => {
+          if (instance) {
+            wspr.set_audio(instance, audio);
+          }
         }
-      });
+      );
 
       const getTranscribedAndDefer = () => {
         const transcribed = wspr.get_transcribed();

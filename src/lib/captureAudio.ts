@@ -9,9 +9,11 @@ export function captureAudio(
     tabCaptureStream,
     kSampleRate = 16_000,
     kIntervalAudio_ms = 5_000,
+    offset = false,
   }: Streams & {
     kSampleRate?: number;
     kIntervalAudio_ms?: number;
+    offset?: boolean;
   },
   onAudio: (a: Float32Array) => void,
   onStop?: () => void,
@@ -87,6 +89,11 @@ export function captureAudio(
 
           offlineContext.startRendering().then((renderedBuffer) => {
             const audio = renderedBuffer.getChannelData(0);
+
+            if (!offset) {
+              onAudio(audio);
+              return;
+            }
 
             if (audioOffset) {
               const audioWithOffset = new Float32Array(
