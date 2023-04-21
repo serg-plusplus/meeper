@@ -7,9 +7,17 @@
   "background": {
     "service_worker": "assets/background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://meet.google.com/*-*-*"],
+      "js": ["assets/content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Meet Trans"
+    "default_title": "Meet Trans",
+    "default_popup": "popup.html"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
@@ -26,13 +34,11 @@
     "128": "icon-128.png"
   },
   "permissions": [
-    "declarativeContent",
     "tabs",
     "activeTab",
     "storage",
     "alarms",
     "scripting",
-    "declarativeNetRequest",
     "tabCapture"
   ]
 }

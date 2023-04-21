@@ -14,7 +14,9 @@ const entryPoints = [
   "common.css",
   "background.ts",
   "content.ts",
+  "inpage.ts",
   "welcome.ts",
+  "popup.tsx",
   "meet.tsx",
   DEV && "_dev/hotreload.ts",
 ]

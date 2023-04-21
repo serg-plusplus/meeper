@@ -9,7 +9,7 @@ export async function registerContentScript() {
       {
         id: "content-main",
         matches: ["*://meet.google.com/*-*-*"],
-        js: ["assets/content.js"],
+        js: ["assets/inpage.js"],
         runAt: "document_start",
         allFrames: true,
         ["world" as any]: "MAIN",

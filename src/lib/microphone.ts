@@ -50,11 +50,36 @@ export function startMicrophone(
   const chunks: Blob[] = [];
   let stream: MediaStream | null = null;
 
-  navigator.mediaDevices
-    .getUserMedia({ audio: true, video: false })
-    .then((s) => {
-      stream = s;
-      mediaRecorder = new MediaRecorder(stream);
+  Promise.all([
+    tabCapture(),
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false }),
+  ])
+    .then(([tabStream, micStream]) => {
+      const TabAudioMediaStream = new MediaStream();
+      TabAudioMediaStream.addTrack(tabStream!.getAudioTracks()[0]);
+
+      const MicAudioMediaStream = new MediaStream();
+      MicAudioMediaStream.addTrack(micStream!.getAudioTracks()[0]);
+
+      const ctx = new AudioContext();
+
+      const audioIn_01 = ctx.createMediaStreamSource(TabAudioMediaStream);
+      const audioIn_02 = ctx.createMediaStreamSource(MicAudioMediaStream);
+
+      const dest = ctx.createMediaStreamDestination();
+
+      audioIn_01.connect(dest);
+      audioIn_02.connect(dest);
+
+      const finalStream = dest.stream;
+
+      // Prevent tab mute
+      const mediaStream = ctx.createMediaStreamSource(tabStream!);
+      mediaStream.connect(ctx.destination);
+
+      // Record
+      mediaRecorder = new MediaRecorder(finalStream);
+
       mediaRecorder.ondataavailable = (evt) => {
         chunks.push(evt.data);
 
@@ -152,4 +177,18 @@ export function startMicrophone(
       }
     }
   }, 100);
+}
+
+function tabCapture() {
+  return new Promise<MediaStream | null>((resolve) => {
+    chrome.tabCapture.capture(
+      {
+        audio: true,
+        video: false,
+      },
+      (stream) => {
+        resolve(stream);
+      }
+    );
+  });
 }

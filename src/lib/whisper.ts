@@ -4,8 +4,8 @@ const dbName = "meeper_main";
 export async function loadWhisper(
   modelUrl: string,
   modelSize: number,
-  onProgress: (p: number) => void,
-  log: (m: string) => void = console.info
+  onProgress?: (p: number) => void,
+  log?: (m: string) => void
 ) {
   // Load Whisper core, includes WASM inside
   const { default: moduleFactory } = await import(
@@ -17,13 +17,13 @@ export async function loadWhisper(
     print: log,
     printErr: log,
     setStatus: (text: string) => {
-      log("whisper: " + text);
+      log?.("whisper: " + text);
     },
     preRun: () => {
-      log("whisper: Preparing ...");
+      log?.("whisper: Preparing ...");
     },
     postRun: () => {
-      log("whisper: Initialized successfully!");
+      log?.("whisper: Initialized successfully!");
     },
   });
 
@@ -32,7 +32,6 @@ export async function loadWhisper(
       modelUrl,
       "whisper.bin",
       modelSize,
-      onProgress,
       (fname: string, buf: Uint8Array) => {
         // write to WASM file using FS_createDataFile
         // if the file exists, delete it
@@ -45,9 +44,10 @@ export async function loadWhisper(
         Module.FS_createDataFile("/", fname, buf, true, true);
 
         res();
-        log("storeFS: stored model: " + fname + " size: " + buf.length);
+        log?.("storeFS: stored model: " + fname + " size: " + buf.length);
       },
       () => rej(new Error("Failed to load Whisper artifacts.")),
+      onProgress,
       log
     );
   });
@@ -72,9 +72,9 @@ function loadRemote(
   url: string,
   dst: string,
   size_mb: number,
-  cbProgress: (p: number) => void,
   cbReady: (dst: string, r: any) => void,
   cbCancel: () => void,
+  cbProgress?: (p: number) => void,
   cbPrint?: (m: string) => void
 ) {
   if (!navigator.storage || !navigator.storage.estimate) {
@@ -122,18 +122,18 @@ function loadRemote(
         cbPrint?.('loadRemote: "' + url + '" is not in the IndexedDB');
 
         // alert and ask the user to confirm
-        if (
-          !confirm(
-            "You are about to download " +
-              size_mb +
-              " MB of data.\n" +
-              "The model data will be cached in the browser for future use.\n\n" +
-              "Press OK to continue."
-          )
-        ) {
-          cbCancel();
-          return;
-        }
+        // if (
+        //   !confirm(
+        //     "You are about to download " +
+        //       size_mb +
+        //       " MB of data.\n" +
+        //       "The model data will be cached in the browser for future use.\n\n" +
+        //       "Press OK to continue."
+        //   )
+        // ) {
+        //   cbCancel();
+        //   return;
+        // }
 
         fetchRemote(url, cbProgress, cbPrint).then((data) => {
           if (data) {
@@ -182,7 +182,7 @@ function loadRemote(
 // fetch a remote file from remote URL using the Fetch API
 async function fetchRemote(
   url: string,
-  cbProgress: (p: number) => void,
+  cbProgress?: (p: number) => void,
   cbPrint?: (m: string) => void
 ) {
   cbPrint?.("fetchRemote: downloading with fetch()...");
@@ -218,7 +218,7 @@ async function fetchRemote(
     receivedLength += value.length;
 
     if (contentLength) {
-      cbProgress(receivedLength / total);
+      cbProgress?.(receivedLength / total);
 
       var progressCur = Math.round((receivedLength / total) * 10);
       if (progressCur != progressLast) {
