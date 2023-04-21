@@ -20,6 +20,7 @@ export function captureAudio(
   if (!micStream && !tabCaptureStream) throw new Error("No audio");
 
   const audioCtx = new AudioContext();
+  let audioOffset: Float32Array | null = null;
 
   let fullStream: MediaStream;
   if (tabCaptureStream && micStream) {
@@ -87,7 +88,17 @@ export function captureAudio(
           offlineContext.startRendering().then((renderedBuffer) => {
             const audio = renderedBuffer.getChannelData(0);
 
-            onAudio(audio);
+            if (audioOffset) {
+              const audioWithOffset = new Float32Array(
+                audioOffset.length + audio.length
+              );
+              audioWithOffset.set(audioOffset, 0);
+              audioWithOffset.set(audio, audioOffset.length);
+
+              onAudio(audioWithOffset);
+            }
+
+            audioOffset = audio;
           });
         },
         onError

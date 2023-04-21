@@ -61,7 +61,7 @@ export default function Meet() {
           (p) => console.info("Progress:", p),
           console.info
         );
-        const instance = wspr.init("whisper.bin", lang);
+        const instance = wspr.init("whisper.bin", lang, 5_000);
 
         wsprRef.current = { wspr, instance };
       }

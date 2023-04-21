@@ -12,15 +12,15 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.9",
-    "@types/chrome": "^0.0.225",
-    "@types/node": "^18.15.11",
+    "@types/chrome": "^0.0.233",
+    "@types/node": "^18.15.13",
     "autoprefixer": "^10.4.14",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.17.13",
+    "esbuild": "^0.17.17",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-style-plugin": "^1.6.1",
-    "postcss": "^8.4.21",
+    "postcss": "^8.4.23",
     "tailwindcss": "^3.3.1",
     "typescript": "^5.0.4"
   }
