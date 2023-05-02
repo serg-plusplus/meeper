@@ -1,4 +1,4 @@
-import { render } from "preact";
+import { mount } from "./components/root";
 import Meet from "./components/Meet";
 
-render(<Meet />, document.getElementById("root")!);
+mount(<Meet />);

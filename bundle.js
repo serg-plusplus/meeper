@@ -1,16 +1,18 @@
+require("dotenv").config();
+
 const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 const { clean: cleanPlugin } = require("esbuild-plugin-clean");
 const { copy: copyPlugin } = require("esbuild-plugin-copy");
-const postCssPlugin = require("esbuild-style-plugin");
+const stylePlugin = require("esbuild-style-plugin");
 
 const { NODE_ENV = "development" } = process.env;
 
 const DEV = NODE_ENV === "development";
 const PROD = NODE_ENV === "production";
 
-const ENV_VARS_WHITELIST = [["NODE_ENV", NODE_ENV]];
+const ENV_VARS_WHITELIST = [["NODE_ENV", NODE_ENV], "OPENAI_API_KEY"];
 
 const entryPoints = [
   "common.css",
@@ -44,7 +46,7 @@ const entryPoints = [
       cleanPlugin({
         patterns: ["ext/assets"],
       }),
-      postCssPlugin({
+      stylePlugin({
         postcss: {
           plugins: [
             require("tailwindcss"),

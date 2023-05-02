@@ -1,145 +1,170 @@
+import {
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+  useRef,
+  useMemo,
+} from "react";
 import classNames from "clsx";
-import { useState, useRef, useEffect } from "preact/hooks";
 
 import MeetHeader from "./MeetHeader";
-import { loadWhisper } from "../lib/whisper";
-import { captureAudio, Streams } from "../lib/captureAudio";
+import { Streams, prepareStreams, captureAudio } from "../lib/capture-audio";
+import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
+import { retry, promiseQueue } from "../lib/system";
 import { RecordType } from "../core/types";
+
+const audioCtx = new AudioContext();
 
 const usp = new URLSearchParams(location.hash.substring(1));
 const tabId = +usp.get("tabid")!;
 const recordType = usp.get("rectype") as RecordType;
 
 export default function Meet() {
-  const [loading, setLoading] = useState(false);
-  const [recording, setRecording] = useState(false);
-
-  const [streams, setStreams] = useState<Streams>({});
+  const [fullStream, setFullStream] = useState<MediaStream>();
   const [content, setContent] = useState<string[]>([]);
+  const [_fatalError, setFatalError] = useState<ReactNode>();
+  const [stopCaptureAudio, setStopCaptureAudio] = useState<() => void>();
 
-  const wsprRef = useRef<any>();
-  const stopAudioCaptureRef = useRef<() => void>();
-  const transcribeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const canRecord = Boolean(fullStream?.active);
+  const recording = canRecord && Boolean(stopCaptureAudio);
 
+  const withQueue = useMemo(promiseQueue, []);
+
+  const contentRef = useRef(content);
   useEffect(() => {
-    if (!tabId || !recordType) return;
+    contentRef.current = content;
+  }, [content]);
 
-    Promise.all([
-      recordType !== RecordType.MicOnly ? tabCapture() : null,
-      recordType !== RecordType.StereoOnly
-        ? navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        : null,
-    ])
-      .then(([tabCaptureStream, micStream]) => {
-        setStreams({ tabCaptureStream, micStream });
-      })
-      .catch(console.error);
-  }, [setStreams]);
-
+  // Boot
+  // Get streams
   useEffect(() => {
-    if (Object.values(streams).filter(Boolean).length > 0) {
-      start();
+    if (!tabId || !recordType) {
+      window.close();
+      return;
     }
-  }, [streams]);
 
-  const start = async () => {
-    if (loading || recording) return;
-    setLoading(true);
+    getStreams()
+      .then((streams) => {
+        const fullStream = prepareStreams(audioCtx, streams);
+        setFullStream(fullStream);
+      })
+      .catch((err) => {
+        console.error(err);
+        setFatalError(err.message);
+      });
+  }, [setFullStream, setFatalError]);
 
-    const currentTab = await chrome.tabs.getCurrent();
-    await chrome.tabs.update(currentTab!.id!, { active: true });
+  const onAudio = useCallback(
+    (audioFile: File) => {
+      const cnt = contentRef.current;
+      const whisperPrompt = cnt.slice(cnt.length - 3, cnt.length).join("\n");
 
-    try {
-      if (!wsprRef.current) {
-        const lang = prompt("Language?", "en");
-
-        const wspr = await loadWhisper(
-          lang === "en"
-            ? "https://whisper.ggerganov.com/ggml-model-whisper-base.en.bin"
-            : "https://whisper.ggerganov.com/ggml-model-whisper-base.bin",
-          142,
-          (p) => console.info("Progress:", p),
-          console.info
-        );
-        const instance = wspr.init("whisper.bin", lang, 5_000);
-
-        wsprRef.current = { wspr, instance };
-      }
-
-      const { wspr, instance } = wsprRef.current;
-
-      wspr.set_status("");
-
-      stopAudioCaptureRef.current = captureAudio(
-        { ...streams, offset: true },
-        (audio) => {
-          if (instance) {
-            wspr.set_audio(instance, audio);
-          }
-        }
+      const textPromise = retry(
+        () =>
+          requestWhisperOpenaiApi(audioFile, "transcriptions", {
+            apiKey: process.env.OPENAI_API_KEY,
+            prompt: whisperPrompt,
+            // language: "en",
+          }),
+        100,
+        2
       );
 
-      const getTranscribedAndDefer = () => {
-        const transcribed = wspr.get_transcribed();
+      return withQueue(async () => {
+        try {
+          const text = await textPromise;
+          if (!text) return;
 
-        if (transcribed != null && transcribed.length > 1) {
-          setContent((c) => [...c, transcribed]);
+          setContent((cnt) => {
+            const lastItem = cnt[cnt.length - 1]?.trim();
+
+            if (lastItem && lastItem.endsWith("...")) {
+              return [
+                ...cnt,
+                `${lastItem.slice(0, lastItem.length - 3)} ${text}`,
+              ];
+            }
+
+            return [...cnt, text];
+          });
+        } catch (err) {
+          console.error(err);
         }
+      });
+    },
+    [setContent]
+  );
 
-        transcribeTimeoutRef.current = setTimeout(getTranscribedAndDefer, 250);
-      };
+  const start = useCallback(async () => {
+    if (recording || !fullStream?.active) return;
 
-      getTranscribedAndDefer();
-      setRecording(true);
-    } catch (err) {
-      console.error(err);
+    const stopCaptureAudio = captureAudio(fullStream, audioCtx, onAudio);
+    setStopCaptureAudio(() => stopCaptureAudio);
+  }, [recording, fullStream, setStopCaptureAudio, onAudio]);
+
+  const startRef = useRef(start);
+  useEffect(() => {
+    startRef.current = start;
+  }, [start]);
+
+  // Auto start
+  useEffect(() => {
+    if (fullStream) {
+      startRef.current?.();
     }
+  }, [fullStream]);
 
-    setLoading(false);
-  };
+  const pause = useCallback(() => {
+    if (!recording) return;
 
-  const stop = () => {
-    if (loading || !recording) return;
+    setStopCaptureAudio((clean) => {
+      clean?.();
+      return undefined;
+    });
+  }, [recording, setStopCaptureAudio]);
 
-    cleanup();
+  const stop = useCallback(() => {
+    if (!recording) return;
 
-    for (const stream of Object.values(streams)) {
-      if (!stream) continue;
-      for (const track of stream.getTracks()) {
+    pause();
+
+    if (fullStream) {
+      for (const track of fullStream.getTracks()) {
         track.stop();
       }
     }
 
-    setStreams({});
-    setTimeout(() => setRecording(false), 300);
-  };
-
-  const cleanup = () => {
-    wsprRef.current?.wspr.set_status("paused");
-    // wsprRef.current?.wspr.free();
-    stopAudioCaptureRef.current?.();
-    clearTimeout(transcribeTimeoutRef.current);
-  };
-
-  useEffect(() => cleanup, []);
+    setFullStream(undefined);
+  }, [recording, pause, fullStream, setFullStream]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <MeetHeader
         rightSide={
-          recording ? (
-            <button
-              type="button"
-              className={classNames(
-                "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200",
-                loading && "opacity-75 cursor-wait"
-              )}
-              onClick={() => stop()}
-              disabled={loading}
-            >
-              Stop
-            </button>
-          ) : null
+          canRecord && (
+            <>
+              <button
+                type="button"
+                className={classNames(
+                  "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200 mr-4"
+                )}
+                onClick={() => (recording ? pause() : start())}
+              >
+                {recording ? "Pause" : "Continue"}
+              </button>
+
+              <button
+                type="button"
+                className={classNames(
+                  "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200"
+                )}
+                onClick={() => stop()}
+              >
+                Stop
+              </button>
+            </>
+          )
         }
       />
       <main className="flex-1 container mx-auto max-w-3xl p-8 grow bg-white">
@@ -147,12 +172,23 @@ export default function Meet() {
           {content.length > 0
             ? content.map((item, i) => <p key={i}>{item}</p>)
             : recording
-            ? "Just say something..."
-            : "Press record to start playing!"}
+            ? "Recording..."
+            : "Loading..."}
         </article>
       </main>
     </div>
   );
+}
+
+async function getStreams(): Promise<Streams> {
+  const [tabCaptureStream, micStream] = await Promise.all([
+    recordType !== RecordType.MicOnly ? tabCapture() : null,
+    recordType !== RecordType.StereoOnly
+      ? navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      : null,
+  ]);
+
+  return { tabCaptureStream, micStream };
 }
 
 function tabCapture() {
@@ -168,12 +204,3 @@ function tabCapture() {
     );
   });
 }
-
-// Other models
-
-// "https://whisper.ggerganov.com/ggml-model-whisper-small.en.bin",
-// 466,
-// "https://whisper.ggerganov.com/ggml-model-whisper-medium.en-q4_0.bin",
-// 469,
-// "https://whisper.ggerganov.com/ggml-model-whisper-small.en-q4_0.bin",
-// 152,

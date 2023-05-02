@@ -1,4 +1,4 @@
-import { render } from "preact";
+import { mount } from "./components/root";
 import Popup from "./components/Popup";
 
-render(<Popup />, document.getElementById("root")!);
+mount(<Popup />);
