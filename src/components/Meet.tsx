@@ -12,6 +12,7 @@ import MeetHeader from "./MeetHeader";
 import { Streams, prepareStreams, captureAudio } from "../lib/capture-audio";
 import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue } from "../lib/system";
+import { getSummary } from "../lib/summary";
 import { RecordType } from "../core/types";
 
 const audioCtx = new AudioContext();
@@ -25,6 +26,14 @@ export default function Meet() {
   const [content, setContent] = useState<string[]>([]);
   const [_fatalError, setFatalError] = useState<ReactNode>();
   const [stopCaptureAudio, setStopCaptureAudio] = useState<() => void>();
+
+  // useEffect(() => {
+  //   chrome.storage.local.get("kek").then(({ kek }) => {
+  //     if (Array.isArray(kek)) {
+  //       setContent(kek);
+  //     }
+  //   });
+  // }, [setContent]);
 
   const canRecord = Boolean(fullStream?.active);
   const recording = canRecord && Boolean(stopCaptureAudio);
@@ -99,7 +108,12 @@ export default function Meet() {
   const start = useCallback(async () => {
     if (recording || !fullStream?.active) return;
 
-    const stopCaptureAudio = captureAudio(fullStream, audioCtx, onAudio);
+    const stopCaptureAudio = captureAudio({
+      stream: fullStream,
+      audioCtx,
+      onAudio,
+    });
+
     setStopCaptureAudio(() => stopCaptureAudio);
   }, [recording, fullStream, setStopCaptureAudio, onAudio]);
 
@@ -124,7 +138,7 @@ export default function Meet() {
     });
   }, [recording, setStopCaptureAudio]);
 
-  const stop = useCallback(() => {
+  const stop = useCallback(async () => {
     if (!recording) return;
 
     pause();
@@ -136,7 +150,12 @@ export default function Meet() {
     }
 
     setFullStream(undefined);
-  }, [recording, pause, fullStream, setFullStream]);
+
+    // await chrome.storage.local.set({ kek: content });
+    setContent(["Generating summary..."]);
+    const summary = await getSummary(content);
+    setContent([summary]);
+  }, [recording, pause, fullStream, setFullStream, content]);
 
   return (
     <div className="min-h-screen flex flex-col">

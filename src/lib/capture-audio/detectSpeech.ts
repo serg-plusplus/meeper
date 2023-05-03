@@ -4,10 +4,10 @@ export function detectSpeechEnd({
   audioCtx,
   stream,
   voiceMinDecibels = -50,
-  minTimeout = 4_000,
-  initialInterval = 60,
-  intervalSpeedupStep = 10,
-  delaySpeedupStep = 3_000,
+  initialSpeedupDelay = 4_000,
+  initialInterval = 55,
+  intervalSpeedupStep = 5,
+  delaySpeedupStep = 1_500,
   onSpeechStart,
   onSpeechEnd,
 }: {
@@ -16,7 +16,7 @@ export function detectSpeechEnd({
   onSpeechStart: () => void;
   onSpeechEnd: () => void;
   voiceMinDecibels?: number;
-  minTimeout?: number;
+  initialSpeedupDelay?: number;
   initialInterval?: number;
   intervalSpeedupStep?: number;
   delaySpeedupStep?: number;
@@ -29,9 +29,6 @@ export function detectSpeechEnd({
   });
 
   let speedupIntervalTimeout: ReturnType<typeof setTimeout>;
-  let hardStopTimeout: ReturnType<typeof setTimeout>;
-  let startedAt: number;
-  let speaking = false;
 
   const setIntervalAndDefer = (interval: number, delay = delaySpeedupStep) => {
     speechDetector.setInterval(interval);
@@ -43,49 +40,22 @@ export function detectSpeechEnd({
     );
   };
 
-  const start = () => {
-    startedAt = Date.now();
-    clearTimeout(speedupIntervalTimeout);
-    clearTimeout(hardStopTimeout);
-    setIntervalAndDefer(initialInterval, minTimeout);
-  };
-
   const stop = () => {
-    // speaking = false;
-
     clearTimeout(speedupIntervalTimeout);
     onSpeechEnd();
   };
 
   speechDetector.on("stopped_speaking", () => {
-    clearTimeout(hardStopTimeout);
-
-    // const duration = Date.now() - startedAt;
-    // if (duration < minTimeout) {
-    //   hardStopTimeout = setTimeout(stop, minTimeout - duration);
-    //   return;
-    // }
-
     stop();
   });
 
   speechDetector.on("speaking", () => {
-    clearTimeout(hardStopTimeout);
-
-    // if (speaking) return;
-    // speaking = true;
-
-    start();
+    setIntervalAndDefer(initialInterval, initialSpeedupDelay);
     onSpeechStart();
   });
 
   return () => {
     clearTimeout(speedupIntervalTimeout);
-    clearTimeout(hardStopTimeout);
     speechDetector.stop();
-
-    // if (speaking) {
-    //   onSpeechEnd();
-    // }
   };
 }

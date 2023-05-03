@@ -1,24 +1,17 @@
 export function recordAudio({
   stream,
-  onAudio,
+  onDataAvailable,
   onStop,
   onError,
 }: {
   stream: MediaStream;
-  onAudio: (f: File) => void;
+  onDataAvailable: (be: BlobEvent) => void;
   onStop?: () => void;
   onError?: (err: any) => void;
 }) {
   const mediaRecorder = new MediaRecorder(stream);
 
-  mediaRecorder.ondataavailable = async (evt) => {
-    const blob = new Blob([evt.data], { type: "audio/webm;codecs=opus" });
-
-    const file = new File([blob], "meeper_chunk.webm", {
-      type: "audio/webm",
-    });
-    onAudio(file);
-  };
+  mediaRecorder.ondataavailable = onDataAvailable;
 
   if (onStop) mediaRecorder.onstop = onStop;
   if (onError) mediaRecorder.onerror = onError;

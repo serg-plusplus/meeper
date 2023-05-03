@@ -6,6 +6,7 @@ const esbuild = require("esbuild");
 const { clean: cleanPlugin } = require("esbuild-plugin-clean");
 const { copy: copyPlugin } = require("esbuild-plugin-copy");
 const stylePlugin = require("esbuild-style-plugin");
+const { default: wasmPlugin } = require("esbuild-plugin-wasm");
 
 const { NODE_ENV = "development" } = process.env;
 
@@ -34,6 +35,7 @@ const entryPoints = [
     bundle: true,
     sourcemap: DEV,
     minify: PROD,
+    format: "esm",
     define: Object.fromEntries(
       ENV_VARS_WHITELIST.map((item) => {
         const key = Array.isArray(item) ? item[0] : item;
@@ -53,6 +55,9 @@ const entryPoints = [
             PROD && require("autoprefixer"),
           ].filter(Boolean),
         },
+      }),
+      wasmPlugin({
+        mode: "embedded",
       }),
       DEV &&
         copyPlugin({
