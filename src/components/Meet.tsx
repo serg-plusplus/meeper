@@ -45,6 +45,11 @@ export default function Meet() {
     contentRef.current = content;
   }, [content]);
 
+  const canRecordRef = useRef(canRecord);
+  useEffect(() => {
+    canRecordRef.current = canRecord;
+  }, [canRecord]);
+
   // Boot
   // Get streams
   useEffect(() => {
@@ -84,6 +89,8 @@ export default function Meet() {
         try {
           const text = await textPromise;
           if (!text) return;
+
+          if (!canRecordRef.current) return;
 
           setContent((cnt) => {
             const lastItem = cnt[cnt.length - 1]?.trim();
