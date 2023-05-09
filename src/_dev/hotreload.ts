@@ -196,7 +196,7 @@ async function getActiveMainTab(): Promise<chrome.tabs.Tab | undefined> {
   const tabs = await queryTabs({
     active: true,
     lastFocusedWindow: true,
-    url: getExtensionUrlPattern("meet.html"),
+    url: getExtensionUrlPattern("main.html"),
   });
   return tabs[0];
 }

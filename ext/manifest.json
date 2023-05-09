@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "Meet Trans",
-  "short_name": "Meet Trans",
-  "description": "Meet Trans",
+  "name": "Meeper",
+  "short_name": "Meeper",
+  "description": "Meeper - Record, Transcribe, Summarize and more for your meetings.",
   "background": {
     "service_worker": "assets/background.js"
   },
@@ -16,7 +16,7 @@
     }
   ],
   "action": {
-    "default_title": "Meet Trans",
+    "default_title": "Meeper",
     "default_popup": "popup.html"
   },
   "content_security_policy": {

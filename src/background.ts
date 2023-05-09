@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
     if (msg?.type === MsgType.Start) {
       await chrome.tabs.create({
         url: chrome.runtime.getURL(
-          `meet.html#tabid=${msg.tabId}&rectype=${msg.recordType}`
+          `main.html#tabid=${msg.tabId}&rectype=${msg.recordType}`
         ),
         active: false,
         index: msg.tabIndex + 1,
@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
 });
 
 // chrome.tabs.create({
-//   url: chrome.runtime.getURL("meet.html"),
+//   url: chrome.runtime.getURL("main.html"),
 //   active: true,
 // });
 

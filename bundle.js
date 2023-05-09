@@ -20,9 +20,8 @@ const entryPoints = [
   "background.ts",
   "content.ts",
   "inpage.ts",
-  "welcome.ts",
   "popup.tsx",
-  "meet.tsx",
+  "main.tsx",
   DEV && "_dev/hotreload.ts",
 ]
   .filter(Boolean)
@@ -44,6 +43,7 @@ const entryPoints = [
         return [`process.env.${key}`, `"${value}"`];
       })
     ),
+    drop: PROD ? ["console", "debugger"] : undefined,
     plugins: [
       cleanPlugin({
         patterns: ["ext/assets"],

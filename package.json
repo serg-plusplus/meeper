@@ -28,7 +28,7 @@
     "esbuild": "^0.17.18",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-wasm": "^1.1.0",
+    "esbuild-plugin-wasm": "1.0.0",
     "esbuild-style-plugin": "^1.6.2",
     "postcss": "^8.4.23",
     "tailwindcss": "^3.3.2",

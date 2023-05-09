@@ -21,8 +21,6 @@ export function captureAudio({
 
     if (Date.now() - startedAt < minChunkDuration) return;
 
-    // console.info("ON AUDIO", chunks.length);
-
     const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" });
     const file = new File([blob], "meeper_chunk.webm", {
       type: "audio/webm",
@@ -35,8 +33,6 @@ export function captureAudio({
   };
 
   const startRecord = () => {
-    // stopRecord?.();
-
     if (!startedAt) {
       startedAt = Date.now();
     }
@@ -52,11 +48,13 @@ export function captureAudio({
     audioCtx,
     stream,
     onSpeechStart() {
-      // console.info("START Speech");
+      console.info("[Speech] started.");
+
       startRecord();
     },
     onSpeechEnd() {
-      // console.info("END Speech");
+      console.info("[Speech] end.");
+
       setTimeout(stopRecord!, 30);
     },
   });
