@@ -1,7 +1,8 @@
 import { MsgType } from "./core/types";
-import { registerContentScript } from "./lib/registerContentScript";
+import { registerInpageScripts } from "./config/inpageScripts";
+import { buildMainURL } from "./config/mainUrl";
 
-registerContentScript();
+registerInpageScripts();
 
 if (process.env.NODE_ENV === "development") {
   import("./_dev/hotreloadObserver")
@@ -13,9 +14,9 @@ chrome.runtime.onMessage.addListener(async (msg) => {
   try {
     if (msg?.type === MsgType.Start) {
       await chrome.tabs.create({
-        url: chrome.runtime.getURL(
-          `main.html#tabid=${msg.tabId}&rectype=${msg.recordType}`
-        ),
+        url: buildMainURL(`/record/${msg.tabId}`, {
+          recordType: msg.recordType,
+        }),
         active: false,
         index: msg.tabIndex + 1,
         openerTabId: msg.tabId,
@@ -25,6 +26,10 @@ chrome.runtime.onMessage.addListener(async (msg) => {
     console.error(err);
   }
 });
+
+// chrome.tabs.onRemoved.addListener((tabId) => {
+
+// });
 
 // chrome.tabs.create({
 //   url: chrome.runtime.getURL("main.html"),

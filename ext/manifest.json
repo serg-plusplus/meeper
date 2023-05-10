@@ -19,6 +19,14 @@
     "default_title": "Meeper",
     "default_popup": "popup.html"
   },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+0",
+        "mac": "Command+0"
+      }
+    }
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
   },

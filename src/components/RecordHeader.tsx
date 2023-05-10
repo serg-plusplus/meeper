@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export default function MeetHeader({ rightSide }: { rightSide?: ReactNode }) {
+export default function RecordHeader({ rightSide }: { rightSide?: ReactNode }) {
   return (
     <header className="sticky top-0 w-full">
       <nav className="h-16 container mx-auto max-w-3xl px-4 flex flex-wrap items-stretch bg-white border-b border-slate-100">

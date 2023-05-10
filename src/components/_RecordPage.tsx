@@ -8,7 +8,7 @@ import {
 } from "react";
 import classNames from "clsx";
 
-import MeetHeader from "./MeetHeader";
+import RecordHeader from "./RecordHeader";
 import { Streams, prepareStreams, captureAudio } from "../lib/capture-audio";
 import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue } from "../lib/system";
@@ -17,15 +17,24 @@ import { RecordType } from "../core/types";
 
 const audioCtx = new AudioContext();
 
-const usp = new URLSearchParams(location.hash.substring(1));
-const tabId = +usp.get("tabid")!;
-const recordType = usp.get("rectype") as RecordType;
-
-export default function Meet() {
+export default function RecordPage({
+  tabId,
+  recordType,
+}: {
+  tabId: string;
+  recordType: string;
+}) {
   const [fullStream, setFullStream] = useState<MediaStream>();
   const [content, setContent] = useState<string[]>([]);
   const [_fatalError, setFatalError] = useState<ReactNode>();
   const [stopCaptureAudio, setStopCaptureAudio] = useState<() => void>();
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // 👇️ scroll to bottom every time content change
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [content]);
 
   // useEffect(() => {
   //   chrome.storage.local.get("kek").then(({ kek }) => {
@@ -53,21 +62,28 @@ export default function Meet() {
   // Boot
   // Get streams
   useEffect(() => {
-    if (!tabId || !recordType) {
+    if (
+      !tabId ||
+      !recordType ||
+      !Object.values(RecordType).includes(recordType as any)
+    ) {
       window.close();
       return;
     }
 
-    getStreams()
+    getStreams(recordType as RecordType)
       .then((streams) => {
         const fullStream = prepareStreams(audioCtx, streams);
+
+        Object.assign(window, { fullStream });
+
         setFullStream(fullStream);
       })
       .catch((err) => {
         console.error(err);
         setFatalError(err.message);
       });
-  }, [setFullStream, setFatalError]);
+  }, [tabId, recordType, setFullStream, setFatalError]);
 
   const onAudio = useCallback(
     (audioFile: File) => {
@@ -166,7 +182,7 @@ export default function Meet() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <MeetHeader
+      <RecordHeader
         rightSide={
           canRecord && (
             <>
@@ -202,11 +218,13 @@ export default function Meet() {
             : "Loading..."}
         </article>
       </main>
+
+      <div ref={bottomRef} />
     </div>
   );
 }
 
-async function getStreams(): Promise<Streams> {
+async function getStreams(recordType: RecordType): Promise<Streams> {
   const [tabCaptureStream, micStream] = await Promise.all([
     recordType !== RecordType.MicOnly ? tabCapture() : null,
     recordType !== RecordType.StereoOnly

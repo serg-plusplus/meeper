@@ -1,4 +1,9 @@
-import { mount } from "./components/root";
-import Meet from "./components/Meet";
+import { mount } from "./app/root";
+import { RouteProvider } from "./app/mainRoutes";
+import MainRouter from "./components/MainRouter";
 
-mount(<Meet />);
+mount(
+  <RouteProvider>
+    <MainRouter />
+  </RouteProvider>
+);

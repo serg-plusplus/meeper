@@ -8,3 +8,10 @@ export enum RecordType {
   MicOnly = "mic-only",
   Full = "full",
 }
+
+export interface TabInfo {
+  id: number;
+  url: string;
+  title?: string;
+  favIconUrl?: string;
+}

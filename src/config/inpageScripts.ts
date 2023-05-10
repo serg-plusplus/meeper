@@ -3,7 +3,7 @@
  * MAIN world injection does not work properly via manifest
  * https://bugs.chromium.org/p/chromium/issues/detail?id=634381
  */
-export async function registerContentScript() {
+export async function registerInpageScripts() {
   try {
     await chrome.scripting.registerContentScripts([
       {
