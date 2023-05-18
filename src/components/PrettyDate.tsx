@@ -45,3 +45,23 @@ export const getPrettyDate = (date: string | number) => {
 
   return format(preparedDate, "PP", { locale });
 };
+
+export const getPrettyDuration = (
+  start: string | number | Date,
+  end: string | number | Date
+) => {
+  const time = (new Date(end).getTime() - new Date(start).getTime()) / 1_000;
+
+  const totalNumberOfSeconds = Math.floor(time);
+  const hours = parseInt(`${totalNumberOfSeconds / 3600}`);
+  const minutes = parseInt(`${(totalNumberOfSeconds - hours * 3600) / 60}`);
+  const seconds = Math.floor(
+    totalNumberOfSeconds - (hours * 3600 + minutes * 60)
+  );
+  const result =
+    (minutes < 10 ? "0" + minutes : minutes) +
+    ":" +
+    (seconds < 10 ? "0" + seconds : seconds);
+
+  return result;
+};

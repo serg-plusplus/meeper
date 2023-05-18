@@ -54,12 +54,6 @@ export default function RecordPage({
     if (meeper && !isActive) {
       setClosing(true);
       setTimeout(() => window.close(), 3_000);
-
-      // getSummary(content)
-      //   .then((summary) => {
-      //     console.info(summary);
-      //   })
-      //   .catch(console.error);
     }
   }, [meeper, isActive]);
 
@@ -69,6 +63,8 @@ export default function RecordPage({
     return <FatalError error={fatalError} />;
   }
 
+  if (!meeper) return;
+
   return (
     <div
       className={classNames(
@@ -77,28 +73,16 @@ export default function RecordPage({
       )}
     >
       <RecordHeader
+        meeper={meeper}
         recordType={recordType as RecordType}
         recording={recording}
-        meeper={meeper}
       />
 
       <main className="flex-1 container mx-auto max-w-3xl px-4 py-8 grow bg-white">
-        <article className="prose prose-slate">
-          {!fatalError ? (
-            content.length > 0 ? (
-              content.map((item, i) => <p key={i}>{item}</p>)
-            ) : recording ? (
-              "Recording..."
-            ) : (
-              "Loading..."
-            )
-          ) : (
-            <p>
-              <span className="text-red-600">Error!</span>
-              <br />
-              {fatalError}
-            </p>
-          )}
+        <article className="mx-auto prose prose-slate">
+          {content.length > 0
+            ? content.map((item, i) => <p key={i}>{item}</p>)
+            : "Waiting for audio..."}
         </article>
       </main>
 

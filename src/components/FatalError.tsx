@@ -12,7 +12,7 @@ export default function FatalError({
   const noStreamError = error instanceof NoStreamError;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
+    <div className="min-h-screen px-4 flex flex-col items-center justify-center">
       <Alert className="max-w-[40rem] prose prose-slate">
         <AlertTriangle className="h-6 w-6 stroke-yellow-600" />
         <AlertTitle className="ml-2">

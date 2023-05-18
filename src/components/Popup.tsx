@@ -48,22 +48,21 @@ export default function Popup() {
 }
 
 async function record(recordType: RecordType) {
-  try {
-    const [currentTab] = await chrome.tabs.query({
-      currentWindow: true,
-      active: true,
-    });
-    if (!currentTab) throw new Error("Failed to detect current tab");
+  const [currentTab] = await chrome.tabs.query({
+    currentWindow: true,
+    active: true,
+  });
+  if (!currentTab) throw new Error("Failed to detect current tab");
 
-    await chrome.runtime.sendMessage({
-      type: MsgType.Start,
-      recordType,
-      tabId: currentTab.id,
-      tabIndex: currentTab.index,
-    });
-  } catch (err: any) {
-    alert(err?.message);
-  }
+  if (currentTab.url?.includes(chrome.runtime.id))
+    throw new Error("Cannot start on Meeper Tab");
+
+  await chrome.runtime.sendMessage({
+    type: MsgType.Start,
+    recordType,
+    tabId: currentTab.id,
+    tabIndex: currentTab.index,
+  });
 }
 
 const RECORD_TYPES = [

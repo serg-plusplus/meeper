@@ -2,7 +2,7 @@ import { MsgType } from "./core/types";
 import { registerInpageScripts } from "./config/inpageScripts";
 import { buildMainURL } from "./config/extUrl";
 import { getTabRecordState } from "./core/session";
-import { dbRecords } from "./core/db";
+import { dbContents, dbRecords } from "./core/db";
 
 registerInpageScripts();
 
@@ -37,6 +37,9 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
     await dbRecords.update(state.recordId, {
       finishedAt: Date.now(),
     });
+
+    const content = await dbContents.get(state.recordId);
+    if (!content || content.content.length === 0) return;
 
     const tab = await chrome.tabs.get(state.tabId).catch(() => null);
 
