@@ -1,6 +1,8 @@
 import { MsgType } from "./core/types";
 import { registerInpageScripts } from "./config/inpageScripts";
-import { buildMainURL } from "./config/mainUrl";
+import { buildMainURL } from "./config/extUrl";
+import { getTabRecordState } from "./core/session";
+import { dbRecords } from "./core/db";
 
 registerInpageScripts();
 
@@ -27,30 +29,24 @@ chrome.runtime.onMessage.addListener(async (msg) => {
   }
 });
 
-// chrome.tabs.onRemoved.addListener((tabId) => {
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  try {
+    const state = await getTabRecordState(tabId);
+    if (!state) return;
 
-// });
+    await dbRecords.update(state.recordId, {
+      finishedAt: Date.now(),
+    });
 
-// chrome.tabs.create({
-//   url: chrome.runtime.getURL("main.html"),
-//   active: true,
-// });
+    const tab = await chrome.tabs.get(state.tabId).catch(() => null);
 
-// chrome.action.onClicked.addListener(async (currentTab) => {
-//   console.info("HERE");
-//   chrome.runtime.sendMessage({ type: "start-listen", tabId: currentTab.id });
-// });
-
-// chrome.runtime.onMessage.addListener((msg, sender) => {
-//   console.info(msg);
-//   if (msg.type === "start-listen") {
-//     console.info("started");
-
-//     chrome.tabCapture.getMediaStreamId(
-//       { consumerTabId: sender.tab?.id },
-//       (streamId) => {
-//         console.info({ streamId });
-//       }
-//     );
-//   }
-// });
+    await chrome.tabs.create({
+      url: buildMainURL(`/explore/${state.recordId}`),
+      active: true,
+      openerTabId: tab?.id,
+      index: tab?.index ?? state.tabIndex,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});

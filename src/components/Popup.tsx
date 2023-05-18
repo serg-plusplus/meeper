@@ -1,6 +1,8 @@
-import classNames from "clsx";
-import { MsgType, RecordType } from "../core/types";
 import { useRef } from "react";
+import classNames from "clsx";
+
+import { MsgType, RecordType } from "../core/types";
+import History from "./History";
 
 export default function Popup() {
   const recordingRef = useRef(false);
@@ -23,21 +25,25 @@ export default function Popup() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 px-4 gap-4">
-      {RECORD_TYPES.map(([recordType, label]) => (
-        <button
-          key={recordType}
-          type="button"
-          className={classNames(
-            "px-4 py-2 text-lg font-semibold rounded-md border border-slate-200"
-            // loading && "opacity-75 cursor-wait"
-          )}
-          onClick={() => startRecord(recordType)}
-        >
-          Record {label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="flex flex-col items-center justify-center py-8 px-4 gap-4">
+        {RECORD_TYPES.map(([recordType, label]) => (
+          <button
+            key={recordType}
+            type="button"
+            className={classNames(
+              "px-4 py-2 text-lg font-semibold rounded-md border border-slate-200"
+              // loading && "opacity-75 cursor-wait"
+            )}
+            onClick={() => startRecord(recordType)}
+          >
+            Record {label}
+          </button>
+        ))}
+      </div>
+
+      <History />
+    </>
   );
 }
 

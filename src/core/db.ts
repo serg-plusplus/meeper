@@ -6,6 +6,7 @@ const db = new Dexie("meeper_main");
 export interface DBRecord {
   id: string;
   createdAt: number;
+  finishedAt?: number;
   recordType: RecordType;
   tab: TabInfo;
 }

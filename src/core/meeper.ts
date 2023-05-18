@@ -4,10 +4,13 @@ import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue, pick } from "../lib/system";
 import { RecordType, TabInfo } from "./types";
 import { dbRecords, dbContents } from "./db";
+import { syncTabRecordState } from "./session";
 
 const audioCtx = new AudioContext();
 
 export type MeeperRecorder = {
+  recordId: string;
+  tab: TabInfo;
   stream: MediaStream;
   start: () => void;
   pause: () => void;
@@ -29,7 +32,16 @@ export async function recordMeeper(
   const stream = prepareStreams(audioCtx, separateStreams);
 
   // Get this tab
-  const tab = await chrome.tabs.get(tabId);
+  const tabInstance = await chrome.tabs.get(tabId);
+  const tabIndex = tabInstance.index;
+  const tab = pick(tabInstance, "id", "url", "title", "favIconUrl") as TabInfo;
+
+  const currentTab = await chrome.tabs.getCurrent();
+  const recordTabId = currentTab?.id;
+
+  if (typeof recordTabId === "undefined") {
+    throw new Error("Cannot recognize current tab");
+  }
 
   // Create record in DB
   const recordId = nanoid();
@@ -38,7 +50,7 @@ export async function recordMeeper(
       id: recordId,
       createdAt: Date.now(),
       recordType,
-      tab: pick(tab, "id", "url", "title", "favIconUrl") as TabInfo,
+      tab,
     }),
     dbContents.add({
       id: recordId,
@@ -52,7 +64,17 @@ export async function recordMeeper(
   let recording = false;
   let stopCaptureAudio: (() => void) | undefined;
 
-  const dispatch = () => onStateUpdate({ recording, content });
+  const dispatch = () => {
+    onStateUpdate({ recording, content });
+
+    syncTabRecordState({
+      tabId,
+      tabIndex,
+      recordTabId,
+      recordId,
+      recording,
+    });
+  };
 
   const onAudio = (audioFile: File) => {
     const whisperPrompt = content
@@ -102,7 +124,7 @@ export async function recordMeeper(
   };
 
   const start = () => {
-    if (recording) return;
+    if (recording || !stream.active) return;
     recording = true;
     dispatch();
 
@@ -132,7 +154,11 @@ export async function recordMeeper(
   };
 
   const checkIsStreamIsActive = () => {
-    if (!stream.active) {
+    const isStreamsActive = Object.values(separateStreams).every(
+      (s) => s?.active ?? true
+    );
+
+    if (!isStreamsActive) {
       stop();
       dispatch();
       return;
@@ -144,7 +170,24 @@ export async function recordMeeper(
   start();
   checkIsStreamIsActive();
 
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.recordId !== recordId) return;
+
+    switch (msg?.type) {
+      case "start":
+        return start();
+
+      case "pause":
+        return pause();
+
+      case "stop":
+        return stop();
+    }
+  });
+
   return {
+    recordId,
+    tab,
     stream,
     start,
     pause,

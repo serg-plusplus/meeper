@@ -7,7 +7,7 @@ export const { RouteProvider, useRoute, routes } = createRouter(
   {
     explore: defineRoute(
       {
-        recordId: param.path.number,
+        recordId: param.path.string,
       },
       (p) => `/explore/${p.recordId}`
     ),

@@ -23,6 +23,6 @@ export async function registerInpageScripts() {
      * 2. await chrome.scripting.getRegisteredContentScripts() to check for an existing
      *    content script before registering - The provider is not loaded on time.
      */
-    console.warn("Dropped attempt to register content content script.", err);
+    console.warn("Dropped attempt to register content script.", err);
   }
 }

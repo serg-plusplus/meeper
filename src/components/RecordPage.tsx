@@ -1,10 +1,9 @@
-import { useState, useEffect, ReactNode, useRef } from "react";
+import { useState, useEffect, ReactNode, useRef, useMemo } from "react";
 import classNames from "clsx";
 
 import RecordHeader from "./RecordHeader";
 import { RecordType } from "../core/types";
 import { MeeperRecorder, MeeperState, recordMeeper } from "../core/meeper";
-import { getSummary } from "../lib/summary";
 
 export default function RecordPage({
   tabId,
@@ -16,6 +15,7 @@ export default function RecordPage({
   const meeperRef = useRef<MeeperRecorder>();
   const [meeperState, setMeeperState] = useState<MeeperState>();
   const [fatalError, setFatalError] = useState<ReactNode>();
+  const [closing, setClosing] = useState(false);
 
   const meeper = meeperRef.current;
   const isActive = meeper?.stream.active;
@@ -50,47 +50,63 @@ export default function RecordPage({
   useEffect(() => {
     // Handle stop
     if (meeper && !isActive) {
-      getSummary(content)
-        .then((summary) => {
-          console.info(summary);
-        })
-        .catch(console.error);
+      setClosing(true);
+      setTimeout(() => window.close(), 3_000);
+
+      // getSummary(content)
+      //   .then((summary) => {
+      //     console.info(summary);
+      //   })
+      //   .catch(console.error);
     }
-  }, [meeper, isActive, content]);
+  }, [meeper, isActive]);
 
   useEffect(() => meeperRef.current?.stop, []);
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <RecordHeader
-        rightSide={
-          meeper &&
-          isActive && (
-            <>
-              <button
-                type="button"
-                className={classNames(
-                  "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200 mr-4"
-                )}
-                onClick={() => (recording ? meeper.pause() : meeper.start())}
-              >
-                {recording ? "Pause" : "Continue"}
-              </button>
+  const headerRightSide = useMemo(() => {
+    if (closing) {
+      return <span className="text-sm text-muted-foreground">Saving...</span>;
+    }
 
-              <button
-                type="button"
-                className={classNames(
-                  "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200"
-                )}
-                onClick={() => meeper.stop()}
-              >
-                Stop
-              </button>
-            </>
-          )
-        }
-      />
-      <main className="flex-1 container mx-auto max-w-3xl p-8 grow bg-white">
+    if (meeper && isActive) {
+      return (
+        <>
+          <button
+            type="button"
+            className={classNames(
+              "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200 mr-4"
+            )}
+            onClick={() => (recording ? meeper.pause() : meeper.start())}
+          >
+            {recording ? "Pause" : "Continue"}
+          </button>
+
+          <button
+            type="button"
+            className={classNames(
+              "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200"
+            )}
+            onClick={() => meeper.stop()}
+          >
+            Stop
+          </button>
+        </>
+      );
+    }
+
+    return null;
+  }, [closing, meeper, isActive, recording]);
+
+  return (
+    <div
+      className={classNames(
+        "min-h-screen flex flex-col",
+        closing && "opacity-75 cursor-wait"
+      )}
+    >
+      <RecordHeader recording={recording} meeper={meeper} />
+
+      <main className="flex-1 container mx-auto max-w-3xl px-4 py-8 grow bg-white">
         <article className="prose prose-slate">
           {!fatalError ? (
             content.length > 0 ? (

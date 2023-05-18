@@ -15,18 +15,27 @@ export function captureAudio({
   let startedAt: number;
   let chunks: Blob[] = [];
   let stopRecord: (() => void) | undefined;
+  let releaseTimeout: ReturnType<typeof setTimeout>;
 
   const onDataAvailable = async (evt: BlobEvent) => {
+    clearTimeout(releaseTimeout);
     chunks.push(evt.data);
 
-    if (Date.now() - startedAt < minChunkDuration) return;
+    if (Date.now() - startedAt > minChunkDuration) {
+      releaseAudio();
+      return;
+    }
 
+    releaseTimeout = setTimeout(releaseAudio, 500);
+  };
+
+  const releaseAudio = () => {
     const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" });
     const file = new File([blob], "meeper_chunk.webm", {
       type: "audio/webm",
     });
 
-    startedAt = Date.now();
+    startedAt = 0;
     chunks = [];
 
     onAudio(file);
