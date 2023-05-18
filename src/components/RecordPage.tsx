@@ -1,9 +1,11 @@
-import { useState, useEffect, ReactNode, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import classNames from "clsx";
 
-import RecordHeader from "./RecordHeader";
 import { RecordType } from "../core/types";
 import { MeeperRecorder, MeeperState, recordMeeper } from "../core/meeper";
+
+import RecordHeader from "./RecordHeader";
+import FatalError from "./FatalError";
 
 export default function RecordPage({
   tabId,
@@ -14,7 +16,7 @@ export default function RecordPage({
 }) {
   const meeperRef = useRef<MeeperRecorder>();
   const [meeperState, setMeeperState] = useState<MeeperState>();
-  const [fatalError, setFatalError] = useState<ReactNode>();
+  const [fatalError, setFatalError] = useState<Error | string | null>(null);
   const [closing, setClosing] = useState(false);
 
   const meeper = meeperRef.current;
@@ -43,7 +45,7 @@ export default function RecordPage({
       })
       .catch((err) => {
         console.error(err);
-        setFatalError(err.message);
+        setFatalError(err);
       });
   }, [tabId, recordType, setMeeperState, setFatalError]);
 
@@ -63,39 +65,9 @@ export default function RecordPage({
 
   useEffect(() => meeperRef.current?.stop, []);
 
-  const headerRightSide = useMemo(() => {
-    if (closing) {
-      return <span className="text-sm text-muted-foreground">Saving...</span>;
-    }
-
-    if (meeper && isActive) {
-      return (
-        <>
-          <button
-            type="button"
-            className={classNames(
-              "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200 mr-4"
-            )}
-            onClick={() => (recording ? meeper.pause() : meeper.start())}
-          >
-            {recording ? "Pause" : "Continue"}
-          </button>
-
-          <button
-            type="button"
-            className={classNames(
-              "px-2 py-1 text-lg font-semibold rounded-md border border-slate-200"
-            )}
-            onClick={() => meeper.stop()}
-          >
-            Stop
-          </button>
-        </>
-      );
-    }
-
-    return null;
-  }, [closing, meeper, isActive, recording]);
+  if (fatalError) {
+    return <FatalError error={fatalError} />;
+  }
 
   return (
     <div
@@ -104,7 +76,11 @@ export default function RecordPage({
         closing && "opacity-75 cursor-wait"
       )}
     >
-      <RecordHeader recording={recording} meeper={meeper} />
+      <RecordHeader
+        recordType={recordType as RecordType}
+        recording={recording}
+        meeper={meeper}
+      />
 
       <main className="flex-1 container mx-auto max-w-3xl px-4 py-8 grow bg-white">
         <article className="prose prose-slate">

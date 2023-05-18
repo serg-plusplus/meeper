@@ -8,11 +8,14 @@
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.2",
+    "@radix-ui/react-dialog": "^1.0.3",
+    "@radix-ui/react-popover": "^1.0.5",
     "@radix-ui/react-separator": "^1.0.2",
     "@radix-ui/react-slot": "^1.0.1",
     "axios": "^1.4.0",
     "class-variance-authority": "^0.6.0",
     "clsx": "^1.2.1",
+    "cmdk": "^0.2.0",
     "date-fns": "^2.30.0",
     "dexie": "^3.2.3",
     "dexie-react-hooks": "^1.1.3",
@@ -26,6 +29,7 @@
     "tailwindcss-animate": "^1.0.5",
     "ts-pattern": "^4.3.0",
     "type-route": "^1.0.1",
+    "use-chrome-storage": "^1.2.1",
     "use-force-update": "^1.0.11"
   },
   "devDependencies": {

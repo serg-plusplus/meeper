@@ -1,3 +1,18 @@
+/**
+ * Language
+ */
+
+export const LANGCODE = "langcode";
+
+export async function getLangCode() {
+  const items = await chrome.storage.session.get(LANGCODE);
+  return (items[LANGCODE] as string) ?? "auto";
+}
+
+/**
+ * Tab Record
+ */
+
 export interface TabRecordState {
   tabId: number;
   tabIndex: number;

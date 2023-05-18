@@ -89,3 +89,82 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/**
+ * Record wave spinner
+ */
+
+.rw_spinner__container {
+  display: flex;
+  justify-content: space-between;
+  height: 16px;
+  --boxSize: 2px;
+  --gutter: 1px;
+  width: calc((var(--boxSize) + var(--gutter)) * 5);
+}
+
+.rw_spinner {
+  transform: scaleY(0.4);
+  height: 100%;
+  width: var(--boxSize);
+  background: hsl(var(--muted-foreground));
+  animation-duration: 1.2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  border-radius: 8px;
+}
+
+.rw_spinner__1 {
+  animation-name: quiet;
+}
+
+.rw_spinner__2 {
+  animation-name: normal;
+}
+
+.rw_spinner__3 {
+  animation-name: quiet;
+}
+
+.rw_spinner__4 {
+  animation-name: loud;
+}
+
+.rw_spinner__5 {
+  animation-name: quiet;
+}
+
+@keyframes quiet {
+  25% {
+    transform: scaleY(0.6);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(0.8);
+  }
+}
+
+@keyframes normal {
+  25% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(0.6);
+  }
+}
+@keyframes loud {
+  25% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(1.2);
+  }
+}

@@ -4,7 +4,7 @@ import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue, pick } from "../lib/system";
 import { RecordType, TabInfo } from "./types";
 import { dbRecords, dbContents } from "./db";
-import { syncTabRecordState } from "./session";
+import { getLangCode, syncTabRecordState } from "./session";
 
 const audioCtx = new AudioContext();
 
@@ -76,17 +76,19 @@ export async function recordMeeper(
     });
   };
 
-  const onAudio = (audioFile: File) => {
+  const onAudio = async (audioFile: File) => {
     const whisperPrompt = content
       .slice(content.length - 3, content.length)
       .join("\n");
+
+    const savedLanguage = await getLangCode();
 
     const textPromise = retry(
       () =>
         requestWhisperOpenaiApi(audioFile, "transcriptions", {
           apiKey: process.env.OPENAI_API_KEY,
           prompt: whisperPrompt,
-          // language: "en",
+          language: savedLanguage !== "auto" ? savedLanguage : undefined,
         }),
       100,
       2
