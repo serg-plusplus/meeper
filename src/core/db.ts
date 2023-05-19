@@ -6,16 +6,18 @@ const db = new Dexie("meeper_main");
 export interface DBRecord {
   id: string;
   createdAt: number;
+  lastSyncAt?: number;
   finishedAt?: number;
   recordType: RecordType;
+  recordTabId: number;
   tab: TabInfo;
 }
 
 export interface DBContent {
   id: string;
   content: string[];
-  audios?: Blob[];
   summary?: string;
+  // audios?: Blob[];
 }
 
 db.version(1).stores({
@@ -25,3 +27,7 @@ db.version(1).stores({
 
 export const dbRecords = db.table<DBRecord>("records");
 export const dbContents = db.table<DBContent>("contents");
+
+export async function fetchRecords(limit: number) {
+  return dbRecords.orderBy("createdAt").reverse().limit(limit).toArray();
+}

@@ -1,10 +1,9 @@
 import { ReactNode, useCallback } from "react";
 import classNames from "clsx";
-import { AppWindowIcon } from "lucide-react";
 import { TabInfo } from "../core/types";
 
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
+import TabAvatar from "./TabAvatar";
 
 export default function Header({
   tab,
@@ -50,18 +49,7 @@ export default function Header({
           "min-w-0"
         )}
       >
-        <Avatar
-          className={classNames(
-            "mr-4 h-10 w-auto p-1",
-            "rounded-sm border border-border",
-            "bg-muted/75 text-foreground"
-          )}
-        >
-          <AvatarImage src={tab.favIconUrl} alt="" />
-          <AvatarFallback className="rounded-none bg-transparent">
-            <AppWindowIcon className="h-full w-auto" />
-          </AvatarFallback>
-        </Avatar>
+        <TabAvatar tab={tab} className="mr-4 " />
 
         <div className="flex items-center justify-end w-full min-w-0">
           <div className="truncate mr-auto text-base font-semibold leading-snug">

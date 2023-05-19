@@ -97,7 +97,7 @@
 .rw_spinner__container {
   display: flex;
   justify-content: space-between;
-  height: 16px;
+  height: var(--boxHeight, 16px);
   --boxSize: 2px;
   --gutter: 1px;
   width: calc((var(--boxSize) + var(--gutter)) * 5);
@@ -107,7 +107,7 @@
   transform: scaleY(0.4);
   height: 100%;
   width: var(--boxSize);
-  background: hsl(var(--muted-foreground));
+  background: var(--boxBg, hsl(var(--muted-foreground)));
   animation-duration: 1.2s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;

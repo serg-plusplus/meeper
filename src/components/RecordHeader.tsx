@@ -9,6 +9,7 @@ import {
 import { useChromeStorageSession } from "use-chrome-storage";
 import { match, P } from "ts-pattern";
 
+import { RecordType } from "../core/types";
 import type { MeeperRecorder } from "../core/meeper";
 import { LANGCODE } from "../core/session";
 import { WHISPER_LANG_LIST } from "../config/lang";
@@ -17,7 +18,7 @@ import { Button } from "./ui/button";
 
 import Header from "./Header";
 import LanguageSelect from "./LanguageSelect";
-import { RecordType } from "../core/types";
+import RecordSpinner from "./RecordSpinner";
 
 export default function RecordHeader({
   meeper,
@@ -115,15 +116,7 @@ export default function RecordHeader({
       >
         {/* <Edit3 className="h-4 w-auto opacity-75 mr-2 animate-wiggle" /> */}
 
-        {recording && (
-          <div className="rw_spinner__container opacity-75 mr-2">
-            <div className="rw_spinner rw_spinner__1" />
-            <div className="rw_spinner rw_spinner__2" />
-            <div className="rw_spinner rw_spinner__3" />
-            <div className="rw_spinner rw_spinner__4" />
-            <div className="rw_spinner rw_spinner__5" />
-          </div>
-        )}
+        {recording && <RecordSpinner className="mr-2" />}
 
         {statusText}
       </span>

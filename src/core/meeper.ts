@@ -50,6 +50,7 @@ export async function recordMeeper(
       id: recordId,
       createdAt: Date.now(),
       recordType,
+      recordTabId,
       tab,
     }),
     dbContents.add({
@@ -114,11 +115,10 @@ export async function recordMeeper(
 
         dispatch();
 
-        await dbContents
-          .update(recordId, {
-            content,
-          })
-          .catch(console.error);
+        await Promise.all([
+          dbRecords.update(recordId, { lastSyncAt: Date.now() }),
+          dbContents.update(recordId, { content }),
+        ]).catch(console.error);
       } catch (err) {
         console.error(err);
       }

@@ -73,7 +73,8 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
     return null;
   }
 
-  const { tab, content, createdAt, finishedAt, summary } = record;
+  const { tab, content, createdAt, lastSyncAt, finishedAt, summary } = record;
+  const durationEndDate = finishedAt ?? lastSyncAt ?? Date.now();
 
   return (
     <div className={classNames("min-h-screen flex flex-col")}>
@@ -82,7 +83,7 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
         toolbar={
           <div className="flex flex-col items-end justify-between">
             <Badge variant="outline" className="rounded-sm">
-              {getPrettyDuration(createdAt, finishedAt!)}
+              {getPrettyDuration(createdAt, durationEndDate)}
             </Badge>
             <span className="mt-1 text-xs leading-none text-muted-foreground whitespace-nowrap">
               <PrettyDate date={createdAt} />

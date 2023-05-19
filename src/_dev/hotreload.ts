@@ -74,6 +74,8 @@ async function watchChanges(
 
   if (lastChecksum && checksum.common !== lastChecksum.common) {
     try {
+      await new Promise((r) => setTimeout(r, 150));
+
       if (
         checksum.content !== lastChecksum.content ||
         checksum.locales !== lastChecksum.locales ||
