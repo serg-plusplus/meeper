@@ -21,25 +21,38 @@ export interface TabRecordState {
   recording: boolean;
 }
 
-export async function getTabRecordState(recordTabId: number) {
-  const storageKey = toSessionKey({ recordTabId });
+export async function getTabRecordState(
+  params: { tabId: number } | { recordTabId: number }
+) {
+  const storageKey = "tabId" in params ? toTabKey(params) : toRecordKey(params);
+
   const items = await chrome.storage.session.get(storageKey);
   return items[storageKey] as TabRecordState | undefined;
 }
 
 export async function syncTabRecordState(state: TabRecordState) {
-  const storageKey = toSessionKey(state);
+  const recKey = toRecordKey(state);
+  const tabKey = toTabKey(state);
   await chrome.storage.session.set({
-    [storageKey]: state,
+    [recKey]: state,
+    [tabKey]: state,
   });
 }
 
-export async function cleanupTabRecordState(recordTabId: number) {
-  const storageKey = toSessionKey({ recordTabId });
-  await chrome.storage.session.remove(storageKey);
+export async function cleanupTabRecordState({
+  tabId,
+  recordTabId,
+}: Pick<TabRecordState, "tabId" | "recordTabId">) {
+  const recKey = toRecordKey({ recordTabId });
+  const tabKey = toTabKey({ tabId });
+  await chrome.storage.session.remove([recKey, tabKey]);
 }
 
-export function toSessionKey({
+export function toTabKey({ tabId }: Pick<TabRecordState, "tabId">) {
+  return `tab_${tabId}`;
+}
+
+export function toRecordKey({
   recordTabId,
 }: Pick<TabRecordState, "recordTabId">) {
   return `rtab_${recordTabId}`;

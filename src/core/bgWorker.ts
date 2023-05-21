@@ -1,32 +1,37 @@
 import { buildMainURL } from "../config/extUrl";
 
-import { MsgType } from "./types";
-import { getTabRecordState } from "./session";
+import { cleanupTabRecordState, getTabRecordState } from "./session";
 import { dbContents, dbRecords, fetchRecords } from "./db";
 
 export function startBgWorker() {
   // Fetch latest 20 record
   // Finilize if some records didn't
   // (Rare case - application or browser turned off)
-  fetchRecords(20)
-    .then((recs) =>
-      Promise.all(
-        recs
-          .filter((r) => !r.finishedAt)
-          .map((rec) =>
-            dbRecords.update(rec.id, {
-              finishedAt: rec.lastSyncAt ?? Date.now(),
-            })
-          )
+  chrome.storage.session.get("refreshed").then(({ refreshed }) => {
+    if (refreshed) return;
+
+    chrome.storage.session.set({ refreshed: true });
+
+    fetchRecords(20)
+      .then((recs) =>
+        Promise.all(
+          recs
+            .filter((r) => !r.finishedAt)
+            .map((rec) =>
+              dbRecords.update(rec.id, {
+                finishedAt: rec.lastSyncAt ?? Date.now(),
+              })
+            )
+        )
       )
-    )
-    .catch(console.error);
+      .catch(console.error);
+  });
 
   // Listen `Start` message from ext popup
   // Create Record tab/session if recieved
   chrome.runtime.onMessage.addListener(async (msg) => {
     try {
-      if (msg?.type === MsgType.Start) {
+      if (msg?.type === "init") {
         await chrome.tabs.create({
           url: buildMainURL(`/record/${msg.tabId}`, {
             recordType: msg.recordType,
@@ -43,14 +48,15 @@ export function startBgWorker() {
 
   // Finilize process if Recrod tab/session closed
   // Open Explore page with certain record
-  chrome.tabs.onRemoved.addListener(async (tabId) => {
+  chrome.tabs.onRemoved.addListener(async (recordTabId) => {
     try {
-      const state = await getTabRecordState(tabId);
+      const state = await getTabRecordState({ recordTabId });
       if (!state) return;
 
       await dbRecords.update(state.recordId, {
         finishedAt: Date.now(),
       });
+      await cleanupTabRecordState(state);
 
       const content = await dbContents.get(state.recordId);
       if (!content || content.content.length === 0) return;

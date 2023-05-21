@@ -1,11 +1,5 @@
 import { useMemo } from "react";
 import classNames from "clsx";
-import {
-  PauseIcon,
-  PlayIcon,
-  PowerIcon,
-  // Edit3,
-} from "lucide-react";
 import { useChromeStorageSession } from "use-chrome-storage";
 import { match, P } from "ts-pattern";
 
@@ -14,11 +8,10 @@ import type { MeeperRecorder } from "../core/meeper";
 import { LANGCODE } from "../core/session";
 import { WHISPER_LANG_LIST } from "../config/lang";
 
-import { Button } from "./ui/button";
-
 import Header from "./Header";
 import LanguageSelect from "./LanguageSelect";
 import RecordSpinner from "./RecordSpinner";
+import ControlButtons from "./ControlButtons";
 
 export default function RecordHeader({
   meeper,
@@ -59,37 +52,13 @@ export default function RecordHeader({
 
   const toolbar = (
     <div className={classNames("ml-4 lg:ml-8 flex items-center")}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="mr-2"
-        disabled={!streamActive}
-        onClick={() => (recording ? meeper.pause() : meeper.start())}
-      >
-        {recording || !streamActive ? (
-          <>
-            <PauseIcon className="mr-2 h-5 w-auto" />
-            Pause
-          </>
-        ) : (
-          <>
-            <PlayIcon className="mr-2 h-5 w-auto" />
-            Continue
-          </>
-        )}
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={!streamActive}
-        onClick={() => meeper.stop()}
-      >
-        <PowerIcon className="mr-2 h-5 w-auto" />
-        Stop
-      </Button>
+      <ControlButtons
+        streamActive={streamActive}
+        recording={recording}
+        start={meeper.start}
+        pause={meeper.pause}
+        stop={meeper.stop}
+      />
     </div>
   );
 
@@ -114,8 +83,6 @@ export default function RecordHeader({
           "inline-flex items-center"
         )}
       >
-        {/* <Edit3 className="h-4 w-auto opacity-75 mr-2 animate-wiggle" /> */}
-
         {recording && <RecordSpinner className="mr-2" />}
 
         {statusText}

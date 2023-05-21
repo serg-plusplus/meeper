@@ -53,7 +53,7 @@ export default function RecordPage({
     // Handle stop
     if (meeper && !isActive) {
       setClosing(true);
-      setTimeout(() => window.close(), 3_000);
+      setTimeout(() => window.close(), 1_500);
     }
   }, [meeper, isActive]);
 
@@ -63,7 +63,7 @@ export default function RecordPage({
     return <FatalError error={fatalError} />;
   }
 
-  if (!meeper) return;
+  if (!meeper) return null;
 
   return (
     <div

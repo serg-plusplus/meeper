@@ -51,6 +51,9 @@ module.exports = {
         md: `calc(var(--radius) - 2px)`,
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        ["inset-bottom"]: "0 -1px 1px rgba(0, 0, 0, 0.1) inset",
+      },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },

@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import classNames from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon, ScrollTextIcon } from "lucide-react";
 
 import { DBRecord, fetchRecords } from "../core/db";
 import { buildMainURL } from "../config/extUrl";
@@ -38,11 +38,12 @@ const HistoryItem = memo(
           type="button"
           className={classNames(
             "relative group",
-            "w-full p-2 pr-8 mb-2",
+            "w-full px-2 py-4 -my-px pr-8",
             "flex items-center text-left",
             "min-w-0",
             "rounded-md",
             "hover:bg-muted",
+            "border border-transparent hover:border-border",
             "transition-color ease-in-out duration-200"
           )}
           onClick={handleClick}
@@ -77,7 +78,14 @@ const HistoryItem = memo(
                   )}
                 </Badge>
 
-                <span className="ml-2 text-xs font-normal leading-none text-muted-foreground whitespace-nowrap">
+                <span
+                  className={classNames(
+                    "ml-2",
+                    "text-xs font-normal leading-none",
+                    "text-muted-foreground",
+                    "whitespace-nowrap"
+                  )}
+                >
                   <PrettyDate date={createdAt} />
                 </span>
               </div>
@@ -99,8 +107,8 @@ const HistoryItem = memo(
         </button>
 
         {!lastItem && (
-          <div className="mb-2 px-2">
-            <Separator />
+          <div className="px-2">
+            <Separator className="w-[100%+1rem] -mx-1" />
           </div>
         )}
       </>
@@ -149,15 +157,28 @@ export default function History() {
   }, [setLimit]);
 
   return (
-    <div className="px-2 flex flex-col">
-      {records &&
-        records.map((rec, i, arr) => (
-          <HistoryItem
-            key={rec.id}
-            record={rec}
-            lastItem={i === arr.length - 1}
-          />
-        ))}
+    <div className="px-4 flex flex-col">
+      {records && (
+        <>
+          <h3
+            className={classNames(
+              "my-3 text-lg font-semibold text-muted-foreground",
+              "flex items-center justify-center"
+            )}
+          >
+            <ScrollTextIcon className="h-6 w-auto mr-2" />
+            <span>Transcripts</span>
+          </h3>
+
+          {records.map((rec, i, arr) => (
+            <HistoryItem
+              key={rec.id}
+              record={rec}
+              lastItem={i === arr.length - 1}
+            />
+          ))}
+        </>
+      )}
 
       <div ref={infiniteScrollAnchorRef} className="pb-8" />
     </div>

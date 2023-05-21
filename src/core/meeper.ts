@@ -175,6 +175,8 @@ export async function recordMeeper(
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg?.recordId !== recordId) return;
 
+    console.info("Received", msg);
+
     switch (msg?.type) {
       case "start":
         return start();
