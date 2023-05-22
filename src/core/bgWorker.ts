@@ -2,6 +2,7 @@ import { buildMainURL } from "../config/extUrl";
 
 import { cleanupTabRecordState, getTabRecordState } from "./session";
 import { dbContents, dbRecords, fetchRecords } from "./db";
+import { RecordType } from "./types";
 
 export function startBgWorker() {
   // Fetch latest 20 record
@@ -29,20 +30,18 @@ export function startBgWorker() {
 
   // Listen `Start` message from ext popup
   // Create Record tab/session if recieved
-  chrome.runtime.onMessage.addListener(async (msg) => {
-    try {
-      if (msg?.type === "init") {
-        await chrome.tabs.create({
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "init") {
+      chrome.tabs
+        .create({
           url: buildMainURL(`/record/${msg.tabId}`, {
             recordType: msg.recordType,
           }),
           active: false,
           index: msg.tabIndex + 1,
           openerTabId: msg.tabId,
-        });
-      }
-    } catch (err) {
-      console.error(err);
+        })
+        .catch(console.error);
     }
   });
 

@@ -30,10 +30,7 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
   },
-  "host_permissions": [
-    "*://meet.google.com/*-*-*",
-    "https://whisper.ggerganov.com/*"
-  ],
+  "host_permissions": ["*://meet.google.com/*-*-*"],
   "optional_host_permissions": ["*://*/*", "<all_urls>"],
   "default_locale": "en",
   "icons": {
@@ -41,12 +38,5 @@
     "48": "icon-128.png",
     "128": "icon-512.png"
   },
-  "permissions": [
-    "tabs",
-    "activeTab",
-    "storage",
-    "alarms",
-    "scripting",
-    "tabCapture"
-  ]
+  "permissions": ["tabs", "activeTab", "storage", "scripting", "tabCapture"]
 }
