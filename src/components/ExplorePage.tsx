@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import classNames from "clsx";
-import { Loader2 } from "lucide-react";
+import { Loader2, IndentIcon } from "lucide-react";
 
 import { getSummary } from "../lib/summary";
 import { DBContent, DBRecord, dbContents, dbRecords } from "../core/db";
@@ -107,7 +107,7 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
                       AI-powered Transcript Summarization! 🚀✨
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="-mt-2">
+                  <CardContent className="-my-2">
                     <CardDescription className="text-sm text-foreground">
                       Unlock the power of artificial intelligence to generate
                       summaries for your transcripts effortlessly. You can now
@@ -122,7 +122,10 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
                       onClick={() => generateSummary()}
                     >
                       {!generatingSummary ? (
-                        "Genearate summary"
+                        <>
+                          <IndentIcon className="mr-2 h-4 w-4" />
+                          Genearate summary
+                        </>
                       ) : (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

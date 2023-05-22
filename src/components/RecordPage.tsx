@@ -59,6 +59,17 @@ export default function RecordPage({
 
   useEffect(() => meeperRef.current?.stop, []);
 
+  useEffect(() => {
+    if (!isActive) return;
+
+    window.onbeforeunload = () =>
+      "You have attempted to leave this page. Are you sure?\nThe recording will be stopped and saved!";
+
+    return () => {
+      window.onbeforeunload = null;
+    };
+  }, [isActive]);
+
   if (fatalError) {
     return <FatalError error={fatalError} />;
   }
@@ -78,11 +89,32 @@ export default function RecordPage({
         recording={recording}
       />
 
-      <main className="flex-1 container mx-auto max-w-3xl px-4 py-8 grow bg-white">
-        <article className="mx-auto prose prose-slate">
+      <main
+        className={classNames(
+          "flex-1",
+          "container mx-auto max-w-3xl",
+          "px-4 py-8 grow bg-white"
+        )}
+      >
+        <article className="relative mx-auto prose prose-slate">
           {content.length > 0
             ? content.map((item, i) => <p key={i}>{item}</p>)
             : "Waiting for audio..."}
+
+          {isActive && (
+            <div
+              className={classNames(
+                "absolute -left-[7rem] top-[calc(100%-2.35rem)]",
+                "h-12 w-12",
+                "bg-no-repeat",
+                "animate-bounce-horizontal"
+              )}
+              style={{
+                backgroundImage: "url(/misc/meeper_horizontal_2.png)",
+                backgroundSize: "100% auto",
+              }}
+            />
+          )}
         </article>
       </main>
 
