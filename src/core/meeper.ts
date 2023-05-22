@@ -1,10 +1,11 @@
 import { nanoid } from "nanoid";
 import { Streams, captureAudio, prepareStreams } from "../lib/capture-audio";
 import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
-import { retry, promiseQueue, pick } from "../lib/system";
+import { retry, promiseQueue } from "../lib/system";
 import { RecordType, TabInfo } from "./types";
 import { dbRecords, dbContents } from "./db";
 import { getLangCode, syncTabRecordState } from "./session";
+import { getTabInfo } from "./utils";
 
 const audioCtx = new AudioContext();
 
@@ -34,7 +35,7 @@ export async function recordMeeper(
   // Get this tab
   const tabInstance = await chrome.tabs.get(tabId);
   const tabIndex = tabInstance.index;
-  const tab = pick(tabInstance, "id", "url", "title", "favIconUrl") as TabInfo;
+  const tab = getTabInfo(tabInstance);
 
   const currentTab = await chrome.tabs.getCurrent();
   const recordTabId = currentTab?.id;
@@ -175,8 +176,6 @@ export async function recordMeeper(
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg?.recordId !== recordId) return;
 
-    console.info("Received", msg);
-
     switch (msg?.type) {
       case "start":
         return start();
@@ -189,7 +188,7 @@ export async function recordMeeper(
     }
   });
 
-  return {
+  const meeper: MeeperRecorder = {
     recordId,
     tab,
     stream,
@@ -197,6 +196,23 @@ export async function recordMeeper(
     pause,
     stop,
   };
+
+  chrome.tabs.onUpdated.addListener(
+    async (updatedTabId, _changes, updatedTabInstance) => {
+      if (updatedTabId === tabId) {
+        const updatedTab = getTabInfo(updatedTabInstance);
+
+        await dbRecords
+          .update(recordId, { tab: updatedTab })
+          .catch(console.error);
+
+        meeper.tab = updatedTab;
+        dispatch();
+      }
+    }
+  );
+
+  return meeper;
 }
 
 export class NoStreamError extends Error {

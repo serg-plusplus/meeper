@@ -158,27 +158,51 @@ export default function History() {
 
   return (
     <div className="px-4 flex flex-col">
-      {records && (
-        <>
-          <h3
-            className={classNames(
-              "my-3 text-lg font-semibold text-muted-foreground",
-              "flex items-center justify-center"
-            )}
-          >
-            <ScrollTextIcon className="h-6 w-auto mr-2" />
-            <span>Transcripts</span>
-          </h3>
+      {records &&
+        (records.length > 0 ? (
+          <>
+            <h3
+              className={classNames(
+                "my-3 text-lg font-semibold text-muted-foreground",
+                "flex items-center justify-center"
+              )}
+            >
+              <ScrollTextIcon className="h-6 w-auto mr-2" />
+              <span>Transcripts</span>
+            </h3>
 
-          {records.map((rec, i, arr) => (
-            <HistoryItem
-              key={rec.id}
-              record={rec}
-              lastItem={i === arr.length - 1}
+            {records.map((rec, i, arr) => (
+              <HistoryItem
+                key={rec.id}
+                record={rec}
+                lastItem={i === arr.length - 1}
+              />
+            ))}
+          </>
+        ) : (
+          <div className="mt-6 flex flex-col items-center select-none opacity-25">
+            <div
+              className={classNames(
+                "w-[50%] pb-[50%]",
+                "bg-no-repeat bg-cover grayscale"
+              )}
+              style={{
+                backgroundImage: "url(/misc/meeper_superhero.png)",
+                backgroundSize: "100% auto",
+              }}
             />
-          ))}
-        </>
-      )}
+
+            <span
+              className={classNames(
+                "mt-2 max-w-[50%]",
+                "text-center",
+                "font-semibold text-sm text-muted-foreground"
+              )}
+            >
+              Get ready to unlock a new level of productivity!
+            </span>
+          </div>
+        ))}
 
       <div ref={infiniteScrollAnchorRef} className="pb-8" />
     </div>

@@ -7,11 +7,10 @@ import {
   LanguagesIcon,
 } from "lucide-react";
 
-import { pick } from "../lib/system";
-
 import { buildMainURL } from "../config/extUrl";
-import { RecordType, TabInfo } from "../core/types";
+import { RecordType } from "../core/types";
 import { TabRecordState, getTabRecordState, toTabKey } from "../core/session";
+import { getTabInfo } from "../core/utils";
 
 import { Button } from "./ui/button";
 import {
@@ -76,10 +75,14 @@ function PopupActions() {
 
   const transcribing = Boolean(session);
 
+  const disabled = useMemo(() => {
+    if (!activeTab) return false;
+
+    return [chrome.runtime.id].some((p) => activeTab.url?.includes(p));
+  }, [activeTab]);
+
   const tabInfo = useMemo(
-    () =>
-      activeTab &&
-      (pick(activeTab, "id", "url", "title", "favIconUrl") as TabInfo),
+    () => activeTab && getTabInfo(activeTab),
     [activeTab]
   );
 
@@ -163,15 +166,22 @@ function PopupActions() {
     <main className="mb-8 flex flex-col px-4">
       <div
         className={classNames(
-          "rounded-lg border bg-card text-card-foreground shadow-sm",
-          "w-full h-44 text-left",
+          "w-full h-44 min-w-0",
+          "rounded-lg",
+          "border bg-card shadow-meeper-tab-card",
           "flex flex-col justify-between",
-          "min-w-0"
+          "text-left text-card-foreground"
         )}
       >
         {tabInfo && (
           <>
-            <div className="flex items-center px-4 py-1 bg-muted shadow-inset-bottom">
+            <div
+              className={classNames(
+                "rounded-t-lg bg-muted shadow-inset-bottom",
+                "px-4 py-1",
+                "flex items-center"
+              )}
+            >
               <TabAvatar tab={tabInfo} className="mr-2 border-none" />
 
               <div className="flex items-center justify-end w-full min-w-0">
@@ -188,7 +198,11 @@ function PopupActions() {
             </p>
 
             <div className="flex items-end justify-between px-4 pb-3">
-              <Button type="button" onClick={startRecord} disabled={processing}>
+              <Button
+                type="button"
+                onClick={startRecord}
+                disabled={disabled || processing}
+              >
                 {!transcribing ? (
                   <>
                     <LanguagesIcon className="h-4 w-auto mr-2" />

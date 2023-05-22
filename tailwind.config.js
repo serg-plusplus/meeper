@@ -53,6 +53,8 @@ module.exports = {
       },
       boxShadow: {
         ["inset-bottom"]: "0 -1px 1px rgba(0, 0, 0, 0.1) inset",
+        ["meeper-tab-card"]:
+          "0 1px 2px 0 rgba(0, 0, 0, 0.05), 5px 5px 0 0 rgba(250, 178, 133, 0.25)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],

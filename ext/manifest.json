@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "Meeper",
+  "name": "Meeper - transcribe & summarize Meets",
   "short_name": "Meeper",
-  "description": "Meeper - Record, Transcribe, Summarize and more for your meetings.",
+  "description": "Transcriptions, summary and more using ChatGPT and Whisper AI for meetings and any browser tab.",
   "background": {
     "service_worker": "assets/background.js"
   },
@@ -38,8 +38,8 @@
   "default_locale": "en",
   "icons": {
     "16": "icon-16.png",
-    "48": "icon-48.png",
-    "128": "icon-128.png"
+    "48": "icon-128.png",
+    "128": "icon-512.png"
   },
   "permissions": [
     "tabs",
