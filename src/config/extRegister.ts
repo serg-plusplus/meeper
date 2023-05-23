@@ -15,14 +15,37 @@ export async function registerInpageScripts() {
         ["world" as any]: "MAIN",
       },
     ]);
-  } catch (err) {
+  } catch (err: any) {
     /**
-     * An error occurs when app-init.js is reloaded. Attempts to avoid the duplicate script error:
+     * An error occurs when app is reloaded. Attempts to avoid the duplicate script error:
      * 1. registeringContentScripts inside runtime.onInstalled - This caused a race condition
      *    in which the provider might not be loaded in time.
      * 2. await chrome.scripting.getRegisteredContentScripts() to check for an existing
      *    content script before registering - The provider is not loaded on time.
      */
-    console.warn("Dropped attempt to register content script.", err);
+    if (!err || err?.message?.includes("duplicate")) return;
+
+    console.error(err);
   }
+}
+
+export function registerContextMenus() {
+  return new Promise<void>((res) => {
+    chrome.contextMenus.create(
+      {
+        documentUrlPatterns: ["*://meet.google.com/*-*-*"],
+        id: "run-meeper",
+        title: "Run Meeper",
+      },
+      () => {
+        const err = chrome.runtime.lastError;
+
+        if (err && !err?.message?.includes("duplicate")) {
+          console.error(err);
+        }
+
+        res();
+      }
+    );
+  });
 }

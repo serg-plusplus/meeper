@@ -22,9 +22,16 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
+        "default": "Ctrl+Shift+0",
+        "mac": "Command+Shift+0"
+      }
+    },
+    "run-meeper": {
+      "suggested_key": {
         "default": "Ctrl+0",
         "mac": "Command+0"
-      }
+      },
+      "description": "Run Meeper on the current page."
     }
   },
   "content_security_policy": {
@@ -38,5 +45,12 @@
     "48": "icon-128.png",
     "128": "icon-512.png"
   },
-  "permissions": ["tabs", "activeTab", "storage", "scripting", "tabCapture"]
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabCapture",
+    "contextMenus"
+  ]
 }

@@ -1,8 +1,25 @@
 import { buildMainURL } from "../config/extUrl";
+import { matchRecordType } from "../config/recordType";
 
 import { cleanupTabRecordState, getTabRecordState } from "./session";
 import { dbContents, dbRecords, fetchRecords } from "./db";
 import { RecordType } from "./types";
+
+function runMeeper(
+  tab: Pick<chrome.tabs.Tab, "id" | "index" | "url">,
+  recordType?: RecordType
+) {
+  chrome.tabs
+    .create({
+      url: buildMainURL(`/record/${tab.id}`, {
+        recordType: recordType ?? matchRecordType(tab),
+      }),
+      active: false,
+      index: tab.index + 1,
+      openerTabId: tab.id,
+    })
+    .catch(console.error);
+}
 
 export function startBgWorker() {
   // Fetch latest 20 record
@@ -28,24 +45,28 @@ export function startBgWorker() {
       .catch(console.error);
   });
 
-  // Listen `Start` message from ext popup
-  // Create Record tab/session if recieved
+  // Listen `run-meeper` message from ext popup
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "init") {
-      chrome.tabs
-        .create({
-          url: buildMainURL(`/record/${msg.tabId}`, {
-            recordType: msg.recordType,
-          }),
-          active: false,
-          index: msg.tabIndex + 1,
-          openerTabId: msg.tabId,
-        })
-        .catch(console.error);
+    if (msg?.type === "run-meeper" && msg.tabId) {
+      runMeeper({ id: msg.tabId, index: msg.tabIndex }, msg.recordType);
     }
   });
 
-  // Finilize process if Recrod tab/session closed
+  // Listen `run-meeper` command from keyboard shortcuts
+  chrome.commands.onCommand.addListener((cmd, tab) => {
+    if (cmd === "run-meeper" && tab?.id) {
+      runMeeper(tab);
+    }
+  });
+
+  // Listen `run-meeper` item from context menus
+  chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "run-meeper" && tab?.id) {
+      runMeeper(tab);
+    }
+  });
+
+  // Finilize process if Record tab/session closed
   // Open Explore page with certain record
   chrome.tabs.onRemoved.addListener(async (recordTabId) => {
     try {

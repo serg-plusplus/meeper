@@ -1,7 +1,12 @@
-import { registerInpageScripts } from "./config/inpageScripts";
+import {
+  registerInpageScripts,
+  registerContextMenus,
+} from "./config/extRegister";
 import { startBgWorker } from "./core/bgWorker";
 
 registerInpageScripts();
+registerContextMenus();
+
 startBgWorker();
 
 if (process.env.NODE_ENV === "development") {

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { buildMainURL } from "../config/extUrl";
+import { matchRecordType } from "../config/recordType";
 import { RecordType } from "../core/types";
 import { TabRecordState, getTabRecordState, toTabKey } from "../core/session";
 import { getTabInfo } from "../core/utils";
@@ -273,22 +274,12 @@ function PopupActions() {
   );
 }
 
-function matchRecordType(tab: chrome.tabs.Tab) {
-  const meetLikeEntries = ["teams.live", "meet.google", "zoom"];
-
-  if (meetLikeEntries.some((entry) => tab.url?.includes(entry))) {
-    return RecordType.Full;
-  }
-
-  return RecordType.StereoOnly;
-}
-
 async function record(tab: chrome.tabs.Tab, recordType: RecordType) {
   if (tab.url?.includes(chrome.runtime.id))
     throw new Error("Cannot start on Meeper Tab");
 
   await chrome.runtime.sendMessage({
-    type: "init",
+    type: "run-meeper",
     recordType,
     tabId: tab.id,
     tabIndex: tab.index,
