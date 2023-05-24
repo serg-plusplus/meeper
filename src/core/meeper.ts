@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { Streams, captureAudio, prepareStreams } from "../lib/capture-audio";
+import { Streams, captureAudio, mergeStreams } from "../lib/capture-audio";
 import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue } from "../lib/system";
 import { RecordType, TabInfo } from "./types";
@@ -29,8 +29,8 @@ export async function recordMeeper(
   onStateUpdate: (s: MeeperState) => void
 ): Promise<MeeperRecorder> {
   // Obtain streams
-  const { tabCaptureStream, micStream } = await getStreams(recordType);
-  const stream = prepareStreams(audioCtx, { tabCaptureStream, micStream });
+  let { tabCaptureStream, micStream } = await getStreams(recordType);
+  let stream = mergeStreams(audioCtx, { tabCaptureStream, micStream });
 
   // Get this tab
   const tabInstance = await chrome.tabs.get(tabId);
@@ -156,7 +156,25 @@ export async function recordMeeper(
     }
   };
 
-  const checkIsStreamIsActive = () => {
+  const checkIsStreamIsActive = async () => {
+    if (micStream && !micStream.active) {
+      await micCapture()
+        .then((newMicStream) => {
+          let restart = false;
+          if (recording) {
+            pause();
+            restart = true;
+          }
+
+          micStream = newMicStream;
+          stream = mergeStreams(audioCtx, { tabCaptureStream, micStream });
+
+          if (restart) start();
+          else dispatch();
+        })
+        .catch(console.error);
+    }
+
     const isStreamsActive = [tabCaptureStream, micStream].every(
       (s) => s?.active ?? true
     );
@@ -167,7 +185,7 @@ export async function recordMeeper(
       return;
     }
 
-    setTimeout(checkIsStreamIsActive, 1_000);
+    setTimeout(checkIsStreamIsActive, 500);
   };
 
   start();
@@ -241,6 +259,10 @@ function tabCapture() {
           reject(new NoStreamError(chrome.runtime.lastError?.message));
           return;
         }
+
+        // Prevent tab mute
+        const tabSourceNode = audioCtx.createMediaStreamSource(stream);
+        tabSourceNode.connect(audioCtx.destination);
 
         resolve(stream);
       }

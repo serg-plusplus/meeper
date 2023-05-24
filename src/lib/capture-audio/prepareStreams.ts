@@ -3,12 +3,10 @@ export type Streams = {
   tabCaptureStream?: MediaStream | null;
 };
 
-export function prepareStreams(
+export function mergeStreams(
   audioCtx: AudioContext,
   { tabCaptureStream, micStream }: Streams
 ) {
-  let fullStream: MediaStream;
-
   if (tabCaptureStream && micStream) {
     // Merge two streams in one if both provided
     const tabMediaStream = new MediaStream();
@@ -25,18 +23,10 @@ export function prepareStreams(
     tabSourceNode.connect(dest);
     micSourceNode.connect(dest);
 
-    fullStream = dest.stream;
+    return dest.stream;
   } else if (tabCaptureStream) {
-    fullStream = tabCaptureStream;
+    return tabCaptureStream;
   } else {
-    fullStream = micStream!;
+    return micStream!;
   }
-
-  if (tabCaptureStream) {
-    // Prevent tab mute
-    const tabSourceNode = audioCtx.createMediaStreamSource(tabCaptureStream);
-    tabSourceNode.connect(audioCtx.destination);
-  }
-
-  return fullStream;
 }
