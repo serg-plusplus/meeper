@@ -14,11 +14,11 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 import Header from "./Header";
 import FatalError from "./FatalError";
 import PrettyDate, { getPrettyDuration } from "./PrettyDate";
-import { Button } from "./ui/button";
 
 export default function ExplorePage({ recordId }: { recordId: string }) {
   const [_loading, setLoading] = useState(false);
@@ -99,7 +99,27 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
               <h2>Summary</h2>
 
               {summary ? (
-                <p>{summary}</p>
+                <>
+                  <p>{summary}</p>
+
+                  {/* <Button
+                    type="button"
+                    disabled={generatingSummary}
+                    onClick={() => generateSummary()}
+                  >
+                    {!generatingSummary ? (
+                      <>
+                        <IndentIcon className="mr-2 h-4 w-4" />
+                        Genearate summary
+                      </>
+                    ) : (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    )}
+                  </Button> */}
+                </>
               ) : (
                 <Card>
                   <CardHeader>

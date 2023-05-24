@@ -29,8 +29,8 @@ export async function recordMeeper(
   onStateUpdate: (s: MeeperState) => void
 ): Promise<MeeperRecorder> {
   // Obtain streams
-  const separateStreams = await getStreams(recordType);
-  const stream = prepareStreams(audioCtx, separateStreams);
+  const { tabCaptureStream, micStream } = await getStreams(recordType);
+  const stream = prepareStreams(audioCtx, { tabCaptureStream, micStream });
 
   // Get this tab
   const tabInstance = await chrome.tabs.get(tabId);
@@ -157,7 +157,7 @@ export async function recordMeeper(
   };
 
   const checkIsStreamIsActive = () => {
-    const isStreamsActive = Object.values(separateStreams).every(
+    const isStreamsActive = [tabCaptureStream, micStream].every(
       (s) => s?.active ?? true
     );
 

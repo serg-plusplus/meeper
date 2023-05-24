@@ -23,7 +23,7 @@ export async function registerInpageScripts() {
      * 2. await chrome.scripting.getRegisteredContentScripts() to check for an existing
      *    content script before registering - The provider is not loaded on time.
      */
-    if (!err || err?.message?.includes("duplicate")) return;
+    if (!err || err?.message?.toLowerCase()?.includes("Duplicate")) return;
 
     console.error(err);
   }
@@ -40,7 +40,7 @@ export function registerContextMenus() {
       () => {
         const err = chrome.runtime.lastError;
 
-        if (err && !err?.message?.includes("duplicate")) {
+        if (err && !err?.message?.toLowerCase()?.includes("duplicate")) {
           console.error(err);
         }
 

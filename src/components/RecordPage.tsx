@@ -62,12 +62,16 @@ export default function RecordPage({
   useEffect(() => {
     if (!isActive) return;
 
-    window.onbeforeunload = () =>
-      "You have attempted to leave this page. Are you sure?\nThe recording will be stopped and saved!";
+    try {
+      window.onbeforeunload = () =>
+        "You have attempted to leave this page. Are you sure?\nThe recording will be stopped and saved!";
 
-    return () => {
-      window.onbeforeunload = null;
-    };
+      return () => {
+        window.onbeforeunload = null;
+      };
+    } catch {
+      return;
+    }
   }, [isActive]);
 
   if (fatalError) {
