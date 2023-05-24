@@ -23,7 +23,7 @@ export async function registerInpageScripts() {
      * 2. await chrome.scripting.getRegisteredContentScripts() to check for an existing
      *    content script before registering - The provider is not loaded on time.
      */
-    if (!err || err?.message?.toLowerCase()?.includes("Duplicate")) return;
+    if (!err || err?.message?.toLowerCase()?.includes("duplicate")) return;
 
     console.error(err);
   }
