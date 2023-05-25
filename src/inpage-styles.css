@@ -1,0 +1,35 @@
+.__meeper_button {
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center center;
+  width: 2.75rem;
+  height: 2.5rem;
+  margin-right: 0.25rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.__meeper_button:hover,
+.__meeper_button:focus {
+  /* transform: scale(1.1); */
+  border: none;
+  outline: none;
+}
+
+.__meeper_tooltip {
+  display: none;
+  width: max-content;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #222;
+  color: white;
+  font-weight: bold;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 90%;
+  border: 1px solid white;
+  z-index: 99999;
+}

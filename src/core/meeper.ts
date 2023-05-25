@@ -156,6 +156,10 @@ export async function recordMeeper(
     }
   };
 
+  // const setMicEnabled = (enabled: boolean) => {
+
+  // };
+
   const checkIsStreamIsActive = async () => {
     if (micStream && !micStream.active) {
       await micCapture()

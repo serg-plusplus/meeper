@@ -10,6 +10,7 @@ export async function registerInpageScripts() {
         id: "content-main",
         matches: ["*://meet.google.com/*-*-*"],
         js: ["assets/inpage.js"],
+        css: ["assets/inpage-styles.css"],
         runAt: "document_start",
         allFrames: true,
         ["world" as any]: "MAIN",

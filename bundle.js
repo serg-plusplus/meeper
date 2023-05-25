@@ -20,6 +20,7 @@ const entryPoints = [
   "background.ts",
   "content.ts",
   "inpage.ts",
+  "inpage-styles.css",
   "popup.tsx",
   "main.tsx",
   DEV && "_dev/hotreload.ts",
@@ -34,6 +35,8 @@ const entryPoints = [
     bundle: true,
     sourcemap: DEV,
     minify: PROD,
+    platform: "browser",
+    conditions: ["development"], // for `floating-ui` modules
     format: "esm",
     define: Object.fromEntries(
       ENV_VARS_WHITELIST.map((item) => {

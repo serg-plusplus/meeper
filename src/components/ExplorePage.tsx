@@ -65,6 +65,21 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
     setGeneratingSummary(false);
   }, [record, generatingSummary]);
 
+  useEffect(() => {
+    if (!generatingSummary) return;
+
+    try {
+      window.onbeforeunload = () =>
+        "You have attempted to leave this page. Are you sure?\nThe summary generation process will be stopped!";
+
+      return () => {
+        window.onbeforeunload = null;
+      };
+    } catch {
+      return;
+    }
+  }, [generatingSummary]);
+
   if (fatalError) {
     return <FatalError error={fatalError} />;
   }
