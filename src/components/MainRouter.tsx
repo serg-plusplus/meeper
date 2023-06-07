@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { match } from "ts-pattern";
 
+import { RecordType } from "../core/types";
+
 import { useRoute } from "../app/mainRoutes";
 import ExplorePage from "./ExplorePage";
 import RecordPage from "./RecordPage";
@@ -11,7 +13,12 @@ export default function MainRouter() {
 
   return match(route)
     .with({ name: "explore" }, (r) => <ExplorePage {...r.params} />)
-    .with({ name: "record" }, (r) => <RecordPage {...r.params} />)
+    .with({ name: "record" }, (r) => (
+      <RecordPage
+        tabId={r.params.tabId}
+        initialRecordType={r.params.recordType as RecordType}
+      />
+    ))
     .with({ name: "settings" }, () => <SettingsPage />)
     .otherwise(() => <CloseTab />);
 }

@@ -45,10 +45,20 @@ export function startBgWorker() {
       .catch(console.error);
   });
 
-  // Listen `run-meeper` message from ext popup
-  chrome.runtime.onMessage.addListener((msg) => {
+  // Listen messages from ext popup & content scripts
+  chrome.runtime.onMessage.addListener(async (msg, sender) => {
+    // From ext popup
     if (msg?.type === "run-meeper" && msg.tabId) {
       runMeeper({ id: msg.tabId, index: msg.tabIndex }, msg.recordType);
+    }
+
+    // From content scripts
+    if (msg?.target === "meeper" && sender.tab?.id) {
+      const state = await getTabRecordState({ tabId: sender.tab.id });
+
+      if (state && ["start", "pause", "stop", "setmic"].includes(msg.type)) {
+        chrome.runtime.sendMessage({ ...msg, recordId: state.recordId });
+      }
     }
   });
 
@@ -78,10 +88,18 @@ export function startBgWorker() {
       });
       await cleanupTabRecordState(state);
 
+      const tab = await chrome.tabs.get(state.tabId).catch(() => null);
+
+      // Notify tab about the state
+      if (tab?.id) {
+        await chrome.tabs.sendMessage(tab.id, {
+          target: "meeper",
+          active: false,
+        });
+      }
+
       const content = await dbContents.get(state.recordId);
       if (!content || content.content.length === 0) return;
-
-      const tab = await chrome.tabs.get(state.tabId).catch(() => null);
 
       await chrome.tabs.create({
         url: buildMainURL(`/explore/${state.recordId}`),

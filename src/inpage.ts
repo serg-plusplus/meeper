@@ -13,12 +13,13 @@ function injectAndRetry() {
     injectMeeperButton();
   } catch {}
 
-  setTimeout(injectAndRetry, 500);
+  setTimeout(injectAndRetry, 1_000);
 }
 
 function injectMeeperButton() {
-  const micNode = document.querySelectorAll("[data-is-muted=false]")![0];
-  const toolbarNode = micNode.parentNode!.parentNode!.parentNode!;
+  const micNode = document.querySelectorAll("button[data-is-muted]")![0];
+  const toolbarNode =
+    micNode.parentNode!.parentNode!.parentNode!.parentNode!.parentNode!;
 
   // Already injected
   if (
@@ -30,8 +31,62 @@ function injectMeeperButton() {
   // Preview screen
   if (toolbarNode.childNodes.length < 3) return;
 
+  trackState();
+  trackMuted(micNode as HTMLButtonElement);
   initMeeperButton(toolbarNode);
 }
+
+const trackState = () => {
+  // Listen messages from ContentScript
+  window.addEventListener(
+    "message",
+    (evt) => {
+      if (
+        evt.source === window &&
+        evt.origin === location.origin &&
+        evt.data?.target === "meeper" &&
+        evt.data?.to === "inpage"
+      ) {
+        console.info(evt.data);
+      }
+    },
+    false
+  );
+};
+
+const trackMuted = (micNode: HTMLButtonElement) => {
+  const isMuted = () => micNode.dataset?.isMuted === "true";
+
+  let latest = isMuted();
+
+  const checkAndDefer = () => {
+    const current = isMuted();
+
+    if (current !== latest) {
+      latest = current;
+
+      sendMessage({
+        type: "setmic",
+        enabled: !current,
+      });
+    }
+
+    setTimeout(checkAndDefer, 500);
+  };
+
+  checkAndDefer();
+};
+
+const sendMessage = (msg: Record<string, any>) => {
+  window.postMessage(
+    {
+      target: "meeper",
+      to: "content",
+      ...msg,
+    },
+    location.origin
+  );
+};
 
 const initMeeperButton = (container: ParentNode) => {
   const button = document.createElement("button");

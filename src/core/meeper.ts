@@ -16,20 +16,24 @@ export type MeeperRecorder = {
   start: () => void;
   pause: () => void;
   stop: () => void;
+  toggleMic: () => void;
 };
 
 export type MeeperState = {
+  recordType: RecordType;
   recording: boolean;
   content: string[];
 };
 
+// TODO: Reimplement with MeeperState only. Avoid using both state and ref
+
 export async function recordMeeper(
   tabId: number,
-  recordType: RecordType,
+  initialRecordType: RecordType,
   onStateUpdate: (s: MeeperState) => void
 ): Promise<MeeperRecorder> {
   // Obtain streams
-  let { tabCaptureStream, micStream } = await getStreams(recordType);
+  let { tabCaptureStream, micStream } = await getStreams(initialRecordType);
   let stream = mergeStreams(audioCtx, { tabCaptureStream, micStream });
 
   // Get this tab
@@ -50,7 +54,7 @@ export async function recordMeeper(
     dbRecords.add({
       id: recordId,
       createdAt: Date.now(),
-      recordType,
+      recordType: initialRecordType,
       recordTabId,
       tab,
     }),
@@ -65,9 +69,20 @@ export async function recordMeeper(
 
   let recording = false;
   let stopCaptureAudio: (() => void) | undefined;
+  let checkTimeout: ReturnType<typeof setTimeout>;
+
+  const getCurrentRecordType = () => {
+    if (tabCaptureStream && micStream) return RecordType.Full;
+    if (tabCaptureStream) return RecordType.StereoOnly;
+    return RecordType.MicOnly;
+  };
 
   const dispatch = () => {
-    onStateUpdate({ recording, content });
+    onStateUpdate({
+      recordType: getCurrentRecordType(),
+      recording,
+      content,
+    });
 
     syncTabRecordState({
       tabId,
@@ -76,6 +91,15 @@ export async function recordMeeper(
       recordId,
       recording,
     });
+
+    // Notify tab about the state
+    chrome.tabs
+      .sendMessage(tabId, {
+        target: "meeper",
+        active: true,
+        recording,
+      })
+      .catch(console.error);
   };
 
   const onAudio = async (audioFile: File) => {
@@ -149,34 +173,47 @@ export async function recordMeeper(
   const stop = () => {
     pause();
 
-    if (stream.active) {
-      for (const track of stream.getTracks()) {
-        track.stop();
-      }
-    }
+    clearTimeout(checkTimeout);
+    stopStreamTracks(stream);
   };
 
-  // const setMicEnabled = (enabled: boolean) => {
+  let micEnabled = getCurrentRecordType() !== RecordType.StereoOnly;
 
-  // };
+  const toggleMic = () => {
+    micEnabled = !micEnabled;
+  };
+
+  const updateStream = (factory: () => MediaStream) => {
+    let restart = false;
+    if (recording) {
+      pause();
+      restart = true;
+    }
+
+    const newSteram = factory();
+    stream = newSteram;
+    meeper.stream = newSteram;
+
+    if (restart) start();
+    else dispatch();
+  };
 
   const checkIsStreamIsActive = async () => {
-    if (micStream && !micStream.active) {
+    if (micEnabled && !micStream?.active) {
       await micCapture()
-        .then((newMicStream) => {
-          let restart = false;
-          if (recording) {
-            pause();
-            restart = true;
-          }
-
-          micStream = newMicStream;
-          stream = mergeStreams(audioCtx, { tabCaptureStream, micStream });
-
-          if (restart) start();
-          else dispatch();
-        })
+        .then((newMicStream) =>
+          updateStream(() => {
+            micStream = newMicStream;
+            return mergeStreams(audioCtx, { tabCaptureStream, micStream });
+          })
+        )
         .catch(console.error);
+    } else if (!micEnabled && micStream) {
+      updateStream(() => {
+        stopStreamTracks(micStream!);
+        micStream = null;
+        return tabCaptureStream!;
+      });
     }
 
     const isStreamsActive = [tabCaptureStream, micStream].every(
@@ -189,7 +226,7 @@ export async function recordMeeper(
       return;
     }
 
-    setTimeout(checkIsStreamIsActive, 500);
+    checkTimeout = setTimeout(checkIsStreamIsActive, 500);
   };
 
   start();
@@ -207,6 +244,14 @@ export async function recordMeeper(
 
       case "stop":
         return stop();
+
+      case "setmic": {
+        if (typeof msg.enabled !== "boolean") return;
+
+        if (micEnabled !== msg.enabled) {
+          return toggleMic();
+        }
+      }
     }
   });
 
@@ -217,6 +262,7 @@ export async function recordMeeper(
     start,
     pause,
     stop,
+    toggleMic,
   };
 
   chrome.tabs.onUpdated.addListener(
@@ -280,4 +326,12 @@ function micCapture() {
     .catch(() => {
       throw new NoStreamError();
     });
+}
+
+function stopStreamTracks(stream: MediaStream) {
+  if (stream.active) {
+    for (const track of stream.getTracks()) {
+      track.stop();
+    }
+  }
 }

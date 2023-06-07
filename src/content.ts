@@ -1,25 +1,29 @@
 export {};
 
-// window.onmessage = (evt) => {
-//   if (evt.data?.target === "meeper") {
-//     // chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-//     //   const tab = tabs[0];
-//     //   if (!tab) return;
+// Listen messages from InpageScript and redirect to ContentScript
+window.addEventListener(
+  "message",
+  (evt) => {
+    if (
+      evt.source === window &&
+      evt.origin === location.origin &&
+      evt.data?.target === "meeper" &&
+      evt.data?.to === "content"
+    ) {
+      chrome.runtime.sendMessage(evt.data);
+    }
+  },
+  false
+);
 
-//     //   chrome.tabCapture.getMediaStreamId(
-//     //     { consumerTabId: tab.id },
-//     //     (streamId) => {
-//     //       console.info({ streamId });
-//     //     }
-//     //   );
-//     // });
+let debounceTimeout: ReturnType<typeof setTimeout>;
 
-//     chrome.runtime.sendMessage(evt.data);
-//   }
-// };
+// Listen messages from ContentScript and redirect to InpageScript
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.target !== "meeper") return;
 
-// setTimeout(() => {
-//   (document.getElementById("meeper-toggle") as any).onclick = () => {
-//     chrome.runtime.sendMessage({ target: "meeper", type: "start-listen" });
-//   };
-// }, 1000);
+  clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(() => {
+    window.postMessage({ ...msg, to: "inpage" }, location.origin);
+  }, 100);
+});

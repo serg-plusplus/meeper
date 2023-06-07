@@ -9,10 +9,10 @@ import FatalError from "./FatalError";
 
 export default function RecordPage({
   tabId,
-  recordType,
+  initialRecordType,
 }: {
   tabId: number;
-  recordType: string;
+  initialRecordType: RecordType;
 }) {
   const meeperRef = useRef<MeeperRecorder>();
   const [meeperState, setMeeperState] = useState<MeeperState>();
@@ -21,7 +21,11 @@ export default function RecordPage({
 
   const meeper = meeperRef.current;
   const isActive = meeper?.stream.active;
-  const { recording = false, content = [] } = meeperState ?? {};
+  const {
+    recording = false,
+    content = [],
+    recordType = initialRecordType,
+  } = meeperState ?? {};
 
   const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -32,14 +36,14 @@ export default function RecordPage({
   useEffect(() => {
     if (
       !tabId ||
-      !recordType ||
-      !Object.values(RecordType).includes(recordType as any)
+      !initialRecordType ||
+      !Object.values(RecordType).includes(initialRecordType)
     ) {
       window.close();
       return;
     }
 
-    recordMeeper(tabId, recordType as RecordType, setMeeperState)
+    recordMeeper(tabId, initialRecordType, setMeeperState)
       .then((meeper) => {
         meeperRef.current = meeper;
       })
@@ -47,7 +51,7 @@ export default function RecordPage({
         console.error(err);
         setFatalError(err);
       });
-  }, [tabId, recordType, setMeeperState, setFatalError]);
+  }, [tabId, initialRecordType, setMeeperState, setFatalError]);
 
   useEffect(() => {
     // Handle stop
@@ -89,7 +93,7 @@ export default function RecordPage({
     >
       <RecordHeader
         meeper={meeper}
-        recordType={recordType as RecordType}
+        recordType={recordType}
         recording={recording}
       />
 
