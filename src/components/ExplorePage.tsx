@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import classNames from "clsx";
 import { Loader2, IndentIcon } from "lucide-react";
 
-import { getSummary } from "../lib/summary";
+import { getSummary } from "../core/summary";
 import { DBContent, DBRecord, dbContents, dbRecords } from "../core/db";
 
 import {

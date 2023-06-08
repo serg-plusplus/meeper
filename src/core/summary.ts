@@ -3,10 +3,14 @@ import { loadSummarizationChain } from "langchain/chains";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 // import { PromptTemplate } from "langchain";
 
+import { getOpenAiApiKey } from "./openaiApiKey";
+
 export async function getSummary(content: string[]) {
+  const openAIApiKey = await getOpenAiApiKey();
+
   const model = new OpenAI({
     temperature: 0,
-    openAIApiKey: process.env.OPENAI_API_KEY,
+    openAIApiKey,
     maxTokens: 1_024,
     timeout: 120_000,
     modelName: "gpt-3.5-turbo",
