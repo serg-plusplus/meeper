@@ -19,8 +19,11 @@ import { Button } from "./ui/button";
 import Header from "./Header";
 import FatalError from "./FatalError";
 import PrettyDate, { getPrettyDuration } from "./PrettyDate";
+import { useNoApiKeyToast } from "./ApiKeyDialog";
 
 export default function ExplorePage({ recordId }: { recordId: string }) {
+  const noApiKeyToast = useNoApiKeyToast();
+
   const [_loading, setLoading] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const [record, setRecord] = useState<DBRecord & DBContent>();
@@ -59,11 +62,11 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
       setRecord({ ...record, summary });
     } catch (err: any) {
       console.error(err);
-      alert(err?.message);
+      noApiKeyToast(err);
     }
 
     setGeneratingSummary(false);
-  }, [record, generatingSummary]);
+  }, [record, generatingSummary, noApiKeyToast]);
 
   useEffect(() => {
     if (!generatingSummary) return;

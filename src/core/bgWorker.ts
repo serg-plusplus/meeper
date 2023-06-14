@@ -92,10 +92,12 @@ export function startBgWorker() {
 
       // Notify tab about the state
       if (tab?.id) {
-        await chrome.tabs.sendMessage(tab.id, {
-          target: "meeper",
-          active: false,
-        });
+        await chrome.tabs
+          .sendMessage(tab.id, {
+            target: "meeper",
+            active: false,
+          })
+          .catch(console.warn);
       }
 
       const content = await dbContents.get(state.recordId);

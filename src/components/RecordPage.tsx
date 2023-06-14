@@ -6,6 +6,7 @@ import { MeeperRecorder, MeeperState, recordMeeper } from "../core/meeper";
 
 import RecordHeader from "./RecordHeader";
 import FatalError from "./FatalError";
+import { useNoApiKeyToast } from "./ApiKeyDialog";
 
 export default function RecordPage({
   tabId,
@@ -14,6 +15,8 @@ export default function RecordPage({
   tabId: number;
   initialRecordType: RecordType;
 }) {
+  const noApiKeyToast = useNoApiKeyToast();
+
   const meeperRef = useRef<MeeperRecorder>();
   const [meeperState, setMeeperState] = useState<MeeperState>();
   const [fatalError, setFatalError] = useState<Error | string | null>(null);
@@ -43,7 +46,11 @@ export default function RecordPage({
       return;
     }
 
-    recordMeeper(tabId, initialRecordType, setMeeperState)
+    const onError = (err: any) => {
+      noApiKeyToast(err);
+    };
+
+    recordMeeper(tabId, initialRecordType, setMeeperState, onError)
       .then((meeper) => {
         meeperRef.current = meeper;
       })
@@ -51,7 +58,7 @@ export default function RecordPage({
         console.error(err);
         setFatalError(err);
       });
-  }, [tabId, initialRecordType, setMeeperState, setFatalError]);
+  }, [tabId, initialRecordType, setMeeperState, setFatalError, noApiKeyToast]);
 
   useEffect(() => {
     // Handle stop

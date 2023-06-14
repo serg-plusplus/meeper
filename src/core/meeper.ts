@@ -31,7 +31,8 @@ export type MeeperState = {
 export async function recordMeeper(
   tabId: number,
   initialRecordType: RecordType,
-  onStateUpdate: (s: MeeperState) => void
+  onStateUpdate: (s: MeeperState) => void,
+  onError: (err?: any) => void
 ): Promise<MeeperRecorder> {
   // Obtain streams
   let { tabCaptureStream, micStream } = await getStreams(initialRecordType);
@@ -100,11 +101,11 @@ export async function recordMeeper(
         active: true,
         recording,
       })
-      .catch(console.error);
+      .catch(console.warn);
   };
 
   const onAudio = async (audioFile: File) => {
-    const apiKey = await getOpenAiApiKey().catch(() => null);
+    const apiKey = await getOpenAiApiKey().catch(onError);
     if (!apiKey) {
       await dbRecords.update(recordId, { lastSyncAt: Date.now() });
       return;
@@ -128,7 +129,7 @@ export async function recordMeeper(
 
     withQueue(async () => {
       try {
-        const text = await textPromise.catch(console.error);
+        const text = await textPromise.catch(onError);
         if (!text) return;
 
         const lastItem = content[content.length - 1]?.trim();

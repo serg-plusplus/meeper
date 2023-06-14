@@ -26,6 +26,7 @@ export async function setOpenAiApiKey(apiKey: string | null) {
 
   const encrypted = await encrypt(apiKey);
   await chrome.storage.local.set({ [OPENAI_API_KEY]: encrypted });
+  getOpenAiApiKey.clear();
 }
 
 export async function validateApiKey(apiKey: string) {
