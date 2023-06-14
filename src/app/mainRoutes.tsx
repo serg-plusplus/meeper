@@ -18,6 +18,7 @@ export const { RouteProvider, useRoute, routes } = createRouter(
       },
       (p) => `/record/${p.tabId}`
     ),
+    welcome: defineRoute("/welcome"),
     settings: defineRoute("/settings"),
   }
 );

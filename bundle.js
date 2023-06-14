@@ -13,7 +13,7 @@ const { NODE_ENV = "development" } = process.env;
 const DEV = NODE_ENV === "development";
 const PROD = NODE_ENV === "production";
 
-const ENV_VARS_WHITELIST = [["NODE_ENV", NODE_ENV], "OPENAI_API_KEY"];
+const ENV_VARS_WHITELIST = [["NODE_ENV", NODE_ENV], "WEBSITE_URL"];
 
 const entryPoints = [
   "common.css",

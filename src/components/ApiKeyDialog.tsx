@@ -12,6 +12,7 @@ import {
   useRef,
 } from "react";
 import { AlertTriangleIcon, Loader2Icon } from "lucide-react";
+import { Separator } from "@radix-ui/react-separator";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
+import { WEBSITE_URL } from "../config/env";
 import {
   InvalidApiKeyError,
   NoApiKeyError,
@@ -106,6 +108,8 @@ export function ApiKeyDialogProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     getOpenAiApiKey().catch(() => {
+      if (location.hash.includes("welcome")) return;
+
       setOpened(true);
     });
   }, []);
@@ -164,6 +168,8 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
           title: "✅ API Key successfully set!",
           description: "Enjoy with Meeper.",
         });
+
+        window.dispatchEvent(new CustomEvent("_openai_api_key_entered"));
       } catch (err: any) {
         let msg = err.message;
         if (err instanceof InvalidApiKeyError) {
@@ -181,50 +187,53 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
 
   return (
     <DialogContent
-      className="sm:max-w-[425px]"
+      className="sm:max-w-[26rem]"
       onPointerDownOutside={(evt) => evt.preventDefault()}
     >
       <form onSubmit={handleSubmit}>
         <DialogHeader>
-          <DialogTitle className="flex items-center">
+          <DialogTitle className="flex items-center mb-4">
             <OpenAIIcon className="h-5 w-auto mr-2" />
-            <span>Enter Your OpenAI API Key:</span>
+            <span>Enter Your OpenAI API Key</span>
           </DialogTitle>
           <DialogDescription asChild>
-            <ul className="mt-4 list-disc pl-4 text-left space-y-2">
-              <li>You need an OpenAI API Key to use Meeper.</li>
-              <li>
-                Your API Key is stored locally on your browser and encrypted,
-                and never sent anywhere else.
-              </li>
-              <li>
-                <Collapsible>
-                  <CollapsibleTrigger className="hover:underline" tabIndex={-1}>
-                    API Key not working? Click Here.
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <ul className="mt-2 list-disc pl-4 text-left space-y-4">
-                      <li>
-                        Make sure you have your billing info added in{" "}
-                        <a
-                          className="text-blue-500 hover:underline"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          href="https://platform.openai.com/account/billing/overview"
-                        >
-                          OpenAI Billing
-                        </a>{" "}
-                        page. Without billing info, your API key will not work.
-                      </li>
-                      <li>A ChatGPT Plus Subscription is not needed.</li>
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
-              </li>
-            </ul>
+            <div>
+              <ul className="list-disc pl-4 text-left space-y-2">
+                <li>You need an OpenAI API Key to use Meeper.</li>
+                <li>
+                  Your API Key is stored locally on your browser and encrypted,
+                  and never sent anywhere else.
+                </li>
+                <li>
+                  Meeper uses Whisper to transcribe & ChatGPT for summary.{" "}
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://openai.com/pricing"
+                    className="text-blue-500 hover:underline"
+                  >
+                    Pricing related to OpenAI
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <div className="mt-4">
+                <Button variant="link" asChild>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://platform.openai.com/account/api-keys"
+                    className="px-0"
+                  >
+                    → Get your API key from Open AI dashboard.
+                  </a>
+                </Button>
+              </div>
+            </div>
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 grid gap-4 py-4">
+        <div className="grid gap-4 py-4">
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="oi_apikey">API Key</Label>
             <Input
@@ -236,15 +245,29 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
 
-          <Button variant="link" asChild>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://platform.openai.com/account/api-keys"
-            >
-              → Get your API key from Open AI dashboard.
-            </a>
-          </Button>
+          {WEBSITE_URL && (
+            <div className="text-xs text-muted-foreground">
+              By clicking Save Changes, you agree to our{" "}
+              <a
+                className="underline"
+                href={`${WEBSITE_URL}terms`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                className="underline"
+                href={`${WEBSITE_URL}privacy`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </a>
+              .
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button
@@ -266,11 +289,38 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
             ) : (
               <>
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                Processing...
               </>
             )}
           </Button>
         </DialogFooter>
+
+        <Collapsible>
+          <div className="mt-4 text-center">
+            <Separator className="mb-2 w-full h-px bg-muted" />
+
+            <CollapsibleTrigger className="hover:underline" tabIndex={-1}>
+              API Key not working? Click Here.
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent>
+            <ul className="mt-2 list-disc pl-4 text-left space-y-4">
+              <li>
+                Make sure you have your billing info added in{" "}
+                <a
+                  className="text-blue-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://platform.openai.com/account/billing/overview"
+                >
+                  OpenAI Billing
+                </a>{" "}
+                page. Without billing info, your API key will not work.
+              </li>
+              <li>A ChatGPT Plus Subscription is not needed.</li>
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
       </form>
     </DialogContent>
   );

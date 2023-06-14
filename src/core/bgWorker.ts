@@ -22,6 +22,21 @@ function runMeeper(
 }
 
 export function startBgWorker() {
+  chrome.tabs.create({
+    url: buildMainURL("/welcome"),
+    active: true,
+  });
+
+  // Open welcome page when installed
+  chrome.runtime.onInstalled.addListener(({ reason }) => {
+    if (reason === "install") {
+      chrome.tabs.create({
+        url: buildMainURL("/welcome"),
+        active: true,
+      });
+    }
+  });
+
   // Fetch latest 20 record
   // Finilize if some records didn't
   // (Rare case - application or browser turned off)
