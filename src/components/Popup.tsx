@@ -11,7 +11,7 @@ import { buildMainURL } from "../config/extUrl";
 import { matchRecordType } from "../config/recordType";
 import { RecordType } from "../core/types";
 import { TabRecordState, getTabRecordState, toTabKey } from "../core/session";
-import { getTabInfo } from "../core/utils";
+import { getTabInfo, isMac } from "../core/utils";
 
 import { Button } from "./ui/button";
 import {
@@ -207,7 +207,15 @@ function PopupActions() {
                 {!transcribing ? (
                   <>
                     <LanguagesIcon className="h-4 w-auto mr-2" />
-                    Start transcription
+                    Start
+                    <div className="ml-6 flex opacity-75">
+                      <span className="text-xs border border-border px-2 rounded-sm leading-relaxed border-b-2">
+                        <CommandSymbol />
+                      </span>
+                      <span className="ml-1 text-xs border border-border px-2 rounded-sm leading-relaxed border-b-2">
+                        0
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -293,4 +301,19 @@ async function getActiveTab() {
   });
 
   return activeTab;
+}
+
+function CommandSymbol() {
+  const [symbol, setSymbol] = useState(" ");
+
+  useEffect(() => {
+    isMac()
+      .then((mac) => setSymbol(mac ? "⌘" : "Ctrl"))
+      .catch((err) => {
+        console.error(err);
+        setSymbol("Ctrl");
+      });
+  }, []);
+
+  return <>{symbol}</>;
 }

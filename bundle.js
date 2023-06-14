@@ -36,6 +36,7 @@ const entryPoints = [
     sourcemap: DEV,
     minify: PROD,
     platform: "browser",
+    target: "es2019",
     conditions: ["development"], // for `floating-ui` modules
     format: "esm",
     define: Object.fromEntries(
