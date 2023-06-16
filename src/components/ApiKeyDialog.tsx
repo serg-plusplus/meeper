@@ -47,6 +47,32 @@ const apiKeyDialogCtx = createContext<ApiKeyDialogState | null>(null);
 
 export const useApiKeyDialog = () => useContext(apiKeyDialogCtx)!;
 
+export function useApiKeyState() {
+  const [_, setApiKeyDialogOpened] = useApiKeyDialog();
+  const [apiKeyEntered, setApiKeyEntered] = useState(false);
+
+  const openApiKeyDialog = useCallback(
+    () => setApiKeyDialogOpened(true),
+    [setApiKeyDialogOpened]
+  );
+
+  useEffect(() => {
+    getOpenAiApiKey()
+      .then(() => setApiKeyEntered(true))
+      .catch(() => {});
+  }, [setApiKeyEntered]);
+
+  useEffect(() => {
+    window.addEventListener(
+      "_openai_api_key_entered",
+      () => setApiKeyEntered(true),
+      false
+    );
+  }, []);
+
+  return { apiKeyEntered, openApiKeyDialog };
+}
+
 export function useNoApiKeyToast() {
   const { toast } = useToast();
   const [_, setApiKeyDialogOpened] = useApiKeyDialog();

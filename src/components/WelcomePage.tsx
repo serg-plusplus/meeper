@@ -1,27 +1,11 @@
-import { useState, useEffect } from "react";
 import classNames from "clsx";
-
-import { getOpenAiApiKey } from "../core/openaiApiKey";
 
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
-import { useApiKeyDialog } from "./ApiKeyDialog";
+import { useApiKeyState } from "./ApiKeyDialog";
 
 export default function WelcomePage() {
-  const [_, setApiKeyDialogOpened] = useApiKeyDialog();
-  const [apiKeyEntered, setApiKeyEntered] = useState(false);
-
-  useEffect(() => {
-    getOpenAiApiKey().then(() => setApiKeyEntered(true));
-  }, [setApiKeyEntered]);
-
-  useEffect(() => {
-    window.addEventListener(
-      "_openai_api_key_entered",
-      () => setApiKeyEntered(true),
-      false
-    );
-  }, []);
+  const { apiKeyEntered, openApiKeyDialog } = useApiKeyState();
 
   return (
     <div className={classNames("min-h-screen flex flex-col items-center")}>
@@ -72,7 +56,7 @@ export default function WelcomePage() {
             <div className="flex items-center">
               <Button
                 type="button"
-                onClick={() => setApiKeyDialogOpened(true)}
+                onClick={() => openApiKeyDialog()}
                 disabled={apiKeyEntered}
                 className="disabled:opacity-50"
               >

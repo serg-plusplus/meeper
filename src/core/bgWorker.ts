@@ -22,11 +22,6 @@ function runMeeper(
 }
 
 export function startBgWorker() {
-  chrome.tabs.create({
-    url: buildMainURL("/welcome"),
-    active: true,
-  });
-
   // Open welcome page when installed
   chrome.runtime.onInstalled.addListener(({ reason }) => {
     if (reason === "install") {
