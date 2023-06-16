@@ -219,12 +219,11 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
               </ul>
 
               <div className="mt-4">
-                <Button variant="link" asChild>
+                <Button variant="link" className="px-0" asChild>
                   <a
                     target="_blank"
                     rel="noopener noreferrer"
                     href="https://platform.openai.com/account/api-keys"
-                    className="px-0"
                   >
                     → Get your API key from Open AI dashboard.
                   </a>
