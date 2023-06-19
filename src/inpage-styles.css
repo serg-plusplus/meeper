@@ -1,4 +1,4 @@
-.__meeper_button {
+.__meeper_button_reset {
   background-color: transparent;
   border: none;
   margin: 0;
@@ -7,7 +7,10 @@
   font: inherit;
   border-radius: 0;
   appearance: none;
+  cursor: pointer;
+}
 
+.__meeper_button {
   background-repeat: no-repeat;
   background-size: 100% auto;
   background-position: center center;
@@ -59,21 +62,90 @@
   line-height: 1.25rem;
   min-height: 1.6em;
   min-width: 1.6em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .__meeper_hide_button {
-  background-color: transparent;
-  border: none;
-  margin: 0;
-  padding: 0;
-  text-align: inherit;
-  font: inherit;
-  border-radius: 0;
-  appearance: none;
-
   margin: 0 auto;
   font-size: 12px;
   text-decoration: underline;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
+}
+
+/* Spinner */
+
+.rw_spinner__container {
+  display: flex;
+  justify-content: space-between;
+  height: var(--boxHeight, 16px);
+  --boxSize: 2px;
+  --gutter: 1px;
+  width: calc((var(--boxSize) + var(--gutter)) * 5);
+}
+
+.rw_spinner {
+  transform: scaleY(0.4);
+  height: 100%;
+  width: var(--boxSize);
+  background: var(--boxBg, hsl(var(--muted-foreground)));
+  animation-duration: 1.2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  border-radius: 8px;
+}
+
+.rw_spinner__1 {
+  animation-name: quiet;
+}
+
+.rw_spinner__2 {
+  animation-name: normal;
+}
+
+.rw_spinner__3 {
+  animation-name: quiet;
+}
+
+.rw_spinner__4 {
+  animation-name: loud;
+}
+
+.rw_spinner__5 {
+  animation-name: quiet;
+}
+
+@keyframes quiet {
+  25% {
+    transform: scaleY(0.6);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(0.8);
+  }
+}
+
+@keyframes normal {
+  25% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(0.6);
+  }
+}
+@keyframes loud {
+  25% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(1.2);
+  }
 }

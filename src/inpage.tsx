@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   useFloating,
@@ -12,6 +12,7 @@ import {
 } from "@floating-ui/react";
 
 import MEEPER_ICON_BASE64 from "./config/meeperIconBase64";
+import RecordSpinner from "./components/RecordSpinner";
 
 injectAndRetry();
 
@@ -38,13 +39,14 @@ function injectMeeperButton() {
   // Preview screen
   if (toolbarNode.childNodes.length < 3) return;
 
-  trackState();
   trackMuted(micNode as HTMLButtonElement);
 
   const meeperContainer = document.createElement("div");
   meeperContainer.dataset.meeper = "true";
+
   toolbarNode.prepend(meeperContainer);
   const root = createRoot(meeperContainer);
+
   root.render(
     <MeeperButton
       unmount={() => {
@@ -54,8 +56,15 @@ function injectMeeperButton() {
   );
 }
 
+const INITIAL_REC_STATE = {
+  active: false,
+  recording: false,
+};
+
 function MeeperButton({ unmount }: { unmount: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [{ active, recording }, setRecState] = useState(INITIAL_REC_STATE);
+  const [finishing, setFinishing] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -75,6 +84,8 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
 
   const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
+  useEffect(() => trackState(setRecState), []);
+
   return (
     <>
       <button
@@ -82,7 +93,7 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
         {...getReferenceProps()}
         type="button"
         id="__meeper_toggle"
-        className="__meeper_button"
+        className="__meeper_button_reset __meeper_button"
         style={{
           backgroundImage: `url('${MEEPER_ICON_BASE64}')`,
         }}
@@ -100,7 +111,36 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
           style={floatingStyles}
         >
           <span style={{ fontWeight: 600 }}>
-            Transcribe and summarize this meet!
+            {(() => {
+              switch (true) {
+                case finishing:
+                  return "Finishing...";
+
+                case recording:
+                  return (
+                    <span
+                      style={{ display: "inline-flex", alignItems: "center" }}
+                    >
+                      <RecordSpinner
+                        style={
+                          {
+                            marginRight: "0.5rem",
+                            ["--boxHeight"]: "12px",
+                            ["--boxBg"]: "#16a34a",
+                          } as any
+                        }
+                      />
+                      LIVE
+                    </span>
+                  );
+
+                case active:
+                  return "Paused.";
+
+                default:
+                  return "Transcribe and summarize this meet!";
+              }
+            })()}
           </span>
 
           <div
@@ -108,24 +148,69 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
               display: "flex",
               alignItems: "center",
               marginTop: "0.5rem",
-              marginBottom: "0.5rem",
+              marginBottom: !active ? "0.5rem" : "1rem",
+              ...(finishing
+                ? {
+                    opacity: "0.5",
+                    pointerEvents: "none",
+                  }
+                : {}),
             }}
           >
-            <span style={{ marginRight: "0.5rem" }}>Press:</span>
-            <span className="__meeper_kbd">{isMac() ? "⌘" : "Ctrl"}</span>
-            <span
-              style={{
-                fontWeight: 600,
-                marginLeft: "0.25rem",
-                marginRight: "0.25rem",
-              }}
-            >
-              +
-            </span>
-            <span className="__meeper_kbd">0</span>
+            {!active ? (
+              <>
+                <span style={{ marginRight: "0.5rem" }}>Press:</span>
+                <span className="__meeper_kbd">{isMac() ? "⌘" : "Ctrl"}</span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    marginLeft: "0.25rem",
+                    marginRight: "0.25rem",
+                  }}
+                >
+                  +
+                </span>
+                <span className="__meeper_kbd">0</span>
+              </>
+            ) : (
+              <>
+                <button
+                  className="__meeper_button_reset __meeper_kbd"
+                  style={{ marginRight: "0.5rem", padding: "4px 0.5rem" }}
+                  onClick={() => sendMessage({ type: "focus" })}
+                >
+                  Open
+                </button>
+
+                <button
+                  className="__meeper_button_reset __meeper_kbd"
+                  style={{ marginRight: "0.5rem", fontSize: 18 }}
+                  onClick={() =>
+                    sendMessage({ type: recording ? "pause" : "start" })
+                  }
+                >
+                  {recording ? "⏸" : "⏵"}
+                </button>
+
+                <button
+                  className="__meeper_button_reset __meeper_kbd"
+                  style={{ fontSize: 18 }}
+                  onClick={() => {
+                    sendMessage({ type: "stop" });
+                    setFinishing(true);
+                    setTimeout(() => setFinishing(false), 2_500);
+                  }}
+                >
+                  ⏹
+                </button>
+              </>
+            )}
           </div>
 
-          <button className="__meeper_hide_button" onClick={() => unmount()}>
+          <button
+            className="__meeper_button_reset __meeper_hide_button"
+            onClick={() => unmount()}
+          >
             Hide Meeper
           </button>
         </div>
@@ -134,22 +219,21 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
   );
 }
 
-const trackState = () => {
+const trackState = (callback: (data: any) => void) => {
   // Listen messages from ContentScript
-  window.addEventListener(
-    "message",
-    (evt) => {
-      if (
-        evt.source === window &&
-        evt.origin === location.origin &&
-        evt.data?.target === "meeper" &&
-        evt.data?.to === "inpage"
-      ) {
-        console.info(evt.data);
-      }
-    },
-    false
-  );
+  const handleMessage = (evt: MessageEvent) => {
+    if (
+      evt.source === window &&
+      evt.origin === location.origin &&
+      evt.data?.target === "meeper" &&
+      evt.data?.to === "inpage"
+    ) {
+      callback(evt.data);
+    }
+  };
+
+  window.addEventListener("message", handleMessage, false);
+  return () => window.removeEventListener("message", handleMessage, false);
 };
 
 const trackMuted = (micNode: HTMLButtonElement) => {

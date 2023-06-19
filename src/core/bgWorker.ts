@@ -66,7 +66,10 @@ export function startBgWorker() {
     if (msg?.target === "meeper" && sender.tab?.id) {
       const state = await getTabRecordState({ tabId: sender.tab.id });
 
-      if (state && ["start", "pause", "stop", "setmic"].includes(msg.type)) {
+      if (
+        state &&
+        ["start", "pause", "stop", "setmic", "focus"].includes(msg.type)
+      ) {
         chrome.runtime.sendMessage({ ...msg, recordId: state.recordId });
       }
     }

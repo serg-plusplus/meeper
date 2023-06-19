@@ -252,6 +252,11 @@ export async function recordMeeper(
       case "stop":
         return stop();
 
+      case "focus":
+        return chrome.tabs
+          .update(recordTabId, { active: true })
+          .catch(console.warn);
+
       case "setmic": {
         if (typeof msg.enabled !== "boolean") return;
 
