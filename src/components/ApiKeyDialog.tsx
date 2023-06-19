@@ -262,7 +262,7 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="oi_apikey">API Key</Label>
             <Input
-              type="text"
+              type="password"
               id="oi_apikey"
               name="apikey"
               placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
