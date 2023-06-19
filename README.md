@@ -24,7 +24,7 @@ Meeper is an open-source browser extension that serves as your secretary for any
 
 - Multilingual support for diverse language requirements.
 
-- History is stored directly on the user's local machine for easy access.
+- History is stored directly on the local machine.
 
 ## Usage
 
