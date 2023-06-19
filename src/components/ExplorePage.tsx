@@ -114,7 +114,10 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
         <article className="prose prose-slate mx-auto pb-48">
           {content.length > 0 ? (
             <>
-              <h2>Summary</h2>
+              <h2 className="relative">
+                Summary
+                {summary ? <CopyToCB text={summary} /> : null}
+              </h2>
 
               {summary ? (
                 <>
@@ -175,7 +178,10 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
                 </Card>
               )}
 
-              <h2>Transcription</h2>
+              <h2 className="relative">
+                Transcription
+                <CopyToCB text={content.join("\n\n")} />
+              </h2>
 
               {content.map((item, i) => (
                 <p key={i}>{item}</p>
@@ -187,5 +193,49 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
         </article>
       </main>
     </div>
+  );
+}
+
+function CopyToCB({ text }: { text: string }) {
+  const [copying, setСopying] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (copied) {
+      const t = setTimeout(() => {
+        setCopied(false);
+      }, 1_000);
+      return () => clearTimeout(t);
+    }
+    return;
+  }, [copied, setCopied]);
+
+  const handleClick = async () => {
+    if (copying || copied) return;
+    setСopying(true);
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch (err: any) {
+      alert(`Failed to copy to clipboard: ${err?.message ?? "Unknown error."}`);
+    }
+
+    setСopying(false);
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className={classNames(
+        "absolute bottom-0 right-0",
+        copying && "opacity-50",
+        copied && "pointer-events-none"
+      )}
+      onClick={handleClick}
+    >
+      {!copied ? "Copy to clipboard" : "Copied."}
+    </Button>
   );
 }
