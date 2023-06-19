@@ -19,7 +19,7 @@ const entryPoints = [
   "common.css",
   "background.ts",
   "content.ts",
-  "inpage.ts",
+  "inpage.tsx",
   "inpage-styles.css",
   "popup.tsx",
   "main.tsx",
