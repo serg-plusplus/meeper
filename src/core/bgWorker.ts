@@ -120,7 +120,7 @@ export function startBgWorker() {
         url: buildMainURL(`/explore/${state.recordId}`),
         active: true,
         openerTabId: tab?.id,
-        index: tab?.index ?? state.tabIndex,
+        index: (tab?.index ?? state.tabIndex) + 1,
       });
     } catch (err) {
       console.error(err);
