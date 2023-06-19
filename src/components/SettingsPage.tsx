@@ -1,5 +1,7 @@
 import classNames from "clsx";
 
+import { WEBSITE_URL } from "../config/env";
+
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { useApiKeyState } from "./ApiKeyDialog";
@@ -47,33 +49,61 @@ export default function SettingsPage() {
           {apiKeyEntered && <div className="ml-4">✅ Entered.</div>}
         </div>
 
-        <h2>Links</h2>
+        {WEBSITE_URL && (
+          <>
+            <h2>Links</h2>
 
-        <ul>
-          <li>
-            Website:{" "}
-            <a
-              className="text-blue-500 hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://meeper.ai"
-            >
-              meeper.ai
-            </a>
-          </li>
+            <ul>
+              <li>
+                Website:{" "}
+                <a
+                  className="text-blue-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={WEBSITE_URL}
+                >
+                  meeper.ai
+                </a>
+              </li>
 
-          <li>
-            Github:{" "}
-            <a
-              className="text-blue-500 hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://github.com/pas1ko/meeper"
-            >
-              pas1ko/meeper
-            </a>
-          </li>
-        </ul>
+              <li>
+                Github:{" "}
+                <a
+                  className="text-blue-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://github.com/pas1ko/meeper"
+                >
+                  pas1ko/meeper
+                </a>
+              </li>
+
+              <li>
+                Terms:{" "}
+                <a
+                  className="text-blue-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${WEBSITE_URL}terms`}
+                >
+                  meeper.ai/terms
+                </a>
+              </li>
+
+              <li>
+                Privacy:{" "}
+                <a
+                  className="text-blue-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${WEBSITE_URL}privacy`}
+                >
+                  meeper.ai/privacy
+                </a>
+              </li>
+            </ul>
+          </>
+        )}
       </article>
     </div>
   );
