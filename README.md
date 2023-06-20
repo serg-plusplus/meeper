@@ -6,25 +6,25 @@ Meeper is an open-source browser extension that serves as your secretary for any
 
 ## Features
 
-- Works seamlessly with your OpenAI account.
+- 🫧 Works seamlessly with your OpenAI account.
 
-- Your API Key is securely stored locally on your browser, encrypted, and never transmitted elsewhere.
+- 🔐 Your API Key is securely stored locally on your browser, encrypted, and never transmitted elsewhere.
 
-- Meeper utilizes Whisper for accurate transcriptions and ChatGPT for generating summaries.
+- 🤖 Meeper utilizes Whisper for accurate transcriptions and ChatGPT for generating summaries.
 
-- Speech detection feature optimizes API usage by activating only when speech sounds are detected, reducing up to 30% of resource consumption.
+- 💿 Speech detection feature optimizes API usage by activating only when speech sounds are detected, reducing up to 30% of resource consumption.
 
-- Utilizes the chrome tabCapture API to capture audio from specific tabs.
+- 🧩 Utilizes the chrome tabCapture API to capture audio from specific tabs.
 
-- Multiple launch options available: hotkey activation, extension popup, and context menu integration.
+- 🎮 Multiple launch options available: hotkey activation, extension popup, and context menu integration.
 
-- Real-time control of transcription playback, similar to a music player.
+- 🕹️ Real-time control of transcription playback, similar to a music player.
 
-- Supports running transcriptions simultaneously from multiple tabs.
+- 🎛️ Supports running transcriptions simultaneously from multiple tabs.
 
-- Multilingual support for diverse language requirements.
+- 🌎 Multilingual support for diverse language requirements.
 
-- History is stored directly on the local machine.
+- 📠 History is stored directly on the local machine.
 
 ## Usage
 
