@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "name": "Meeper - transcribe & summarize Meets",
   "short_name": "Meeper",
   "description": "Transcriptions, summary and more using ChatGPT and Whisper AI for meetings and any browser tab.",
