@@ -208,12 +208,13 @@ export async function recordMeeper(
   const checkIsStreamIsActive = async () => {
     if (micEnabled && !micStream?.active) {
       await micCapture()
-        .then((newMicStream) =>
-          updateStream(() => {
+        .then((newMicStream) => {
+          if (!newMicStream) return;
+          return updateStream(() => {
             micStream = newMicStream;
             return mergeStreams(audioCtx, { tabCaptureStream, micStream });
-          })
-        )
+          });
+        })
         .catch(console.error);
     } else if (!micEnabled && micStream) {
       updateStream(() => {
@@ -335,8 +336,12 @@ function tabCapture() {
 function micCapture() {
   return navigator.mediaDevices
     .getUserMedia({ audio: true, video: false })
-    .catch(() => {
-      throw new NoStreamError();
+    .catch((err) => {
+      // throw new NoStreamError();
+      alert(
+        `Failed to enable microphone: ${err.message}\nLook for the microphone icon in browser toolbar and check if it's enabled.`
+      );
+      return null;
     });
 }
 
