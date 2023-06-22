@@ -7,6 +7,7 @@ on:
 
 env:
   WEBSITE_URL: https://meeper.ai/
+  ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
 
 jobs:
   release:

@@ -1,15 +1,6 @@
-import * as fingerprint from "@fingerprintjs/fingerprintjs";
-import memoizeOne from "memoize-one";
 import { Buffer } from "buffer";
 
-const getDeviceId = memoizeOne(async () => {
-  const agent = await fingerprint.load({
-    monitoring: false,
-  });
-  const { visitorId } = await agent.get();
-
-  return visitorId;
-});
+import { ENCRYPTION_KEY } from "../../config/env";
 
 export async function encrypt(data: string) {
   const salt = getRandomBytes();
@@ -52,10 +43,9 @@ export async function decrypt(encrypted: string) {
 }
 
 async function getCryptoKey(salt: Uint8Array) {
-  const deviceId = await getDeviceId();
   const originKey = await crypto.subtle.importKey(
     "raw",
-    Buffer.from(deviceId, "utf8"),
+    Buffer.from(ENCRYPTION_KEY, "utf8"),
     "PBKDF2",
     false,
     ["deriveBits", "deriveKey"]
