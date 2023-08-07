@@ -11,7 +11,7 @@ import {
   FormEventHandler,
   useRef,
 } from "react";
-import { AlertTriangleIcon, Loader2Icon } from "lucide-react";
+import { AlertTriangleIcon, AlertCircleIcon, Loader2Icon } from "lucide-react";
 import { Separator } from "@radix-ui/react-separator";
 import { Button } from "./ui/button";
 import {
@@ -53,7 +53,7 @@ export function useApiKeyState() {
 
   const openApiKeyDialog = useCallback(
     () => setApiKeyDialogOpened(true),
-    [setApiKeyDialogOpened]
+    [setApiKeyDialogOpened],
   );
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export function useApiKeyState() {
     window.addEventListener(
       "_openai_api_key_entered",
       () => setApiKeyEntered(true),
-      false
+      false,
     );
   }, []);
 
@@ -208,7 +208,7 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
 
       setProcessing(false);
     },
-    [setError, setProcessing, onClose, processing, toast]
+    [setError, setProcessing, onClose, processing, toast],
   );
 
   return (
@@ -236,7 +236,7 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     href="https://openai.com/pricing"
-                    className="text-blue-500 hover:underline"
+                    className="font-medium hover:underline"
                   >
                     Pricing related to OpenAI
                   </a>
@@ -244,16 +244,43 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
                 </li>
               </ul>
 
-              <div className="mt-4">
-                <Button variant="link" className="px-0" asChild>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href="https://platform.openai.com/account/api-keys"
-                  >
-                    → Get your API key from Open AI dashboard.
-                  </a>
-                </Button>
+              <div className="mt-4 rounded-lg border pb-4 px-4">
+                <ul className="list-decimal pl-4">
+                  <li>
+                    <span className="mr-1 text-primary">→</span>
+                    <Button
+                      variant="link"
+                      className="px-0 text-blue-500"
+                      asChild
+                    >
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href="https://platform.openai.com/account/api-keys"
+                      >
+                        Get your API key from Open AI dashboard.
+                      </a>
+                    </Button>
+                  </li>
+                  <li>
+                    <div className="text-primary">
+                      <AlertCircleIcon className="inline-flex items-center -mt-0.5 mr-1 h-3.5 w-3.5 text-yellow-500" />
+                      <span className="font-medium">
+                        Make sure you have your billing info added in{" "}
+                        <a
+                          className="text-blue-500 hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://platform.openai.com/account/billing/overview"
+                        >
+                          OpenAI Billing
+                        </a>{" "}
+                        page.
+                      </span>{" "}
+                      Without billing info, your API key will not work.
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
           </DialogDescription>
