@@ -71,7 +71,7 @@ function PopupActions() {
   const [session, setSession] = useState<TabRecordState>();
   const [activeTab, setActiveTab] = useState<chrome.tabs.Tab>();
   const [recordType, setRecordType] = useState<RecordType>(
-    RecordType.StereoOnly
+    RecordType.StereoOnly,
   );
 
   const transcribing = Boolean(session);
@@ -84,7 +84,7 @@ function PopupActions() {
 
   const tabInfo = useMemo(
     () => activeTab && getTabInfo(activeTab),
-    [activeTab]
+    [activeTab],
   );
 
   const load = useCallback(async () => {
@@ -160,7 +160,7 @@ function PopupActions() {
         }, 2_000);
       }
     },
-    [session, setSession]
+    [session, setSession],
   );
 
   return (
@@ -171,7 +171,7 @@ function PopupActions() {
           "rounded-lg",
           "border bg-card shadow-meeper-tab-card",
           "flex flex-col justify-between",
-          "text-left text-card-foreground"
+          "text-left text-card-foreground",
         )}
       >
         {tabInfo && (
@@ -180,7 +180,7 @@ function PopupActions() {
               className={classNames(
                 "rounded-t-lg bg-muted shadow-inset-bottom",
                 "px-4 py-1",
-                "flex items-center"
+                "flex items-center",
               )}
             >
               <TabAvatar tab={tabInfo} className="mr-2 border-none" />
@@ -208,13 +208,18 @@ function PopupActions() {
                   <>
                     <LanguagesIcon className="h-4 w-auto mr-2" />
                     Start
-                    <div className="ml-6 flex opacity-75">
-                      <span className="text-xs border border-border px-2 rounded-sm leading-relaxed border-b-2">
-                        <CommandSymbol />
-                      </span>
-                      <span className="ml-1 text-xs border border-border px-2 rounded-sm leading-relaxed border-b-2">
-                        0
-                      </span>
+                    <div className="ml-4 -mr-1 flex opacity-75">
+                      {[<CommandSymbol />, "⇧", "0"].map((text, i) => (
+                        <span
+                          key={i}
+                          className={classNames(
+                            "text-xs border border-border px-2 rounded-sm leading-relaxed border-b-2",
+                            i !== 0 && "ml-1",
+                          )}
+                        >
+                          {text}
+                        </span>
+                      ))}
                     </div>
                   </>
                 ) : (
@@ -239,7 +244,7 @@ function PopupActions() {
                         className={classNames(
                           "mr-1",
                           "inline-flex items-center",
-                          "text-xs text-foreground"
+                          "text-xs text-foreground",
                         )}
                       >
                         <MicIcon className="h-3 w-auto mr-0.5" />
@@ -252,7 +257,7 @@ function PopupActions() {
                         className={classNames(
                           "mr-1",
                           "inline-flex items-center",
-                          "text-xs text-foreground"
+                          "text-xs text-foreground",
                         )}
                       >
                         <HeadphonesIcon className="h-3 w-auto mr-1.5" />

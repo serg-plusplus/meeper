@@ -32,7 +32,7 @@
 .__meeper_tooltip {
   white-space: normal;
   text-align: left;
-  width: 140px;
+  width: 170px;
   background: rgba(0, 0, 0, 0.85);
   color: rgba(255, 255, 255, 0.9);
   padding: 10px 16px;
@@ -54,7 +54,7 @@
   border-style: solid;
   border-color: hsl(var(--bc) / var(--tw-border-opacity));
   background-color: hsl(var(--b2) / var(--tw-bg-opacity));
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   border-bottom-width: 2px;
   padding-left: 0.25rem;
   padding-right: 0.25rem;

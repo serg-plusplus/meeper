@@ -22,14 +22,14 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+0",
-        "mac": "Command+Shift+0"
+        "default": "Ctrl+Shift+9",
+        "mac": "Command+Shift+9"
       }
     },
     "run-meeper": {
       "suggested_key": {
-        "default": "Ctrl+0",
-        "mac": "Command+0"
+        "default": "Ctrl+Shift+0",
+        "mac": "Command+Shift+0"
       },
       "description": "Run Meeper on the current page."
     }

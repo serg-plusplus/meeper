@@ -52,7 +52,7 @@ function injectMeeperButton() {
       unmount={() => {
         meeperContainer.style.display = "none";
       }}
-    />
+    />,
   );
 }
 
@@ -138,7 +138,7 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
                   return "Paused.";
 
                 default:
-                  return "Transcribe and summarize this meet!";
+                  return "📑 Transcribe and summarize this meet!";
               }
             })()}
           </span>
@@ -164,8 +164,20 @@ function MeeperButton({ unmount }: { unmount: () => void }) {
                 <span
                   style={{
                     fontWeight: 600,
-                    marginLeft: "0.25rem",
-                    marginRight: "0.25rem",
+                    marginLeft: "0.15rem",
+                    marginRight: "0.15rem",
+                    opacity: 0.75,
+                  }}
+                >
+                  +
+                </span>
+                <span className="__meeper_kbd">⇧</span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    marginLeft: "0.15rem",
+                    marginRight: "0.15rem",
+                    opacity: 0.75,
                   }}
                 >
                   +
@@ -266,7 +278,7 @@ const sendMessage = (msg: Record<string, any>) => {
       to: "content",
       ...msg,
     },
-    location.origin
+    location.origin,
   );
 };
 
