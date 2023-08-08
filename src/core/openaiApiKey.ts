@@ -7,7 +7,7 @@ const OPENAI_API_KEY = "_oak";
 
 export const getOpenAiApiKey = memoizeOne(async () => {
   const { [OPENAI_API_KEY]: encrypted } = await chrome.storage.local.get(
-    OPENAI_API_KEY
+    OPENAI_API_KEY,
   );
   if (!encrypted) throw new NoApiKeyError();
 
@@ -19,6 +19,12 @@ export const getOpenAiApiKey = memoizeOne(async () => {
   return apiKey;
 });
 
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "APIKEY_REFRESHED") {
+    getOpenAiApiKey.clear();
+  }
+});
+
 export async function setOpenAiApiKey(apiKey: string | null) {
   if (!apiKey) {
     return chrome.storage.local.remove(OPENAI_API_KEY);
@@ -26,7 +32,7 @@ export async function setOpenAiApiKey(apiKey: string | null) {
 
   const encrypted = await encrypt(apiKey);
   await chrome.storage.local.set({ [OPENAI_API_KEY]: encrypted });
-  getOpenAiApiKey.clear();
+  chrome.runtime.sendMessage({ type: "APIKEY_REFRESHED" });
 }
 
 export async function validateApiKey(apiKey: string) {
@@ -40,3 +46,4 @@ export async function validateApiKey(apiKey: string) {
 
 export class NoApiKeyError extends Error {}
 export class InvalidApiKeyError extends Error {}
+export class NonWorkingApiKeyError extends Error {}

@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { AxiosError } from "axios";
 import { Streams, captureAudio, mergeStreams } from "../lib/capture-audio";
 import { requestWhisperOpenaiApi } from "../lib/whisper/openaiApi";
 import { retry, promiseQueue } from "../lib/system";
@@ -6,7 +7,7 @@ import { RecordType, TabInfo } from "./types";
 import { dbRecords, dbContents } from "./db";
 import { getLangCode, syncTabRecordState } from "./session";
 import { getTabInfo } from "./utils";
-import { getOpenAiApiKey } from "./openaiApiKey";
+import { getOpenAiApiKey, NonWorkingApiKeyError } from "./openaiApiKey";
 
 const audioCtx = new AudioContext();
 
@@ -32,7 +33,7 @@ export async function recordMeeper(
   tabId: number,
   initialRecordType: RecordType,
   onStateUpdate: (s: MeeperState) => void,
-  onError: (err?: any) => void
+  onError: (err?: any) => void,
 ): Promise<MeeperRecorder> {
   // Obtain streams
   let { tabCaptureStream, micStream } = await getStreams(initialRecordType);
@@ -122,9 +123,20 @@ export async function recordMeeper(
           apiKey,
           prompt: whisperPrompt,
           language: savedLanguage !== "auto" ? savedLanguage : undefined,
+        }).catch((err: AxiosError) => {
+          let newErr;
+          try {
+            if (err.response?.status?.toString().startsWith("4")) {
+              const { error } = err.response.data as any;
+
+              newErr = new NonWorkingApiKeyError(error.message);
+            }
+          } catch {}
+
+          throw newErr ?? err;
         }),
-      100,
-      2
+      50,
+      1,
     );
 
     withQueue(async () => {
@@ -137,7 +149,7 @@ export async function recordMeeper(
         if (lastItem && lastItem.endsWith("...")) {
           const lastItemWithoutThreeDot = lastItem.slice(
             0,
-            lastItem.length - 3
+            lastItem.length - 3,
           );
 
           content[content.length - 1] = `${lastItemWithoutThreeDot} ${text}`;
@@ -225,7 +237,7 @@ export async function recordMeeper(
     }
 
     const isStreamsActive = [tabCaptureStream, micStream].every(
-      (s) => s?.active ?? true
+      (s) => s?.active ?? true,
     );
 
     if (!isStreamsActive) {
@@ -290,7 +302,7 @@ export async function recordMeeper(
         meeper.tab = updatedTab;
         dispatch();
       }
-    }
+    },
   );
 
   return meeper;
@@ -328,7 +340,7 @@ function tabCapture() {
         tabSourceNode.connect(audioCtx.destination);
 
         resolve(stream);
-      }
+      },
     );
   });
 }
@@ -339,7 +351,7 @@ function micCapture() {
     .catch((err) => {
       // throw new NoStreamError();
       alert(
-        `Failed to enable microphone: ${err.message}\nLook for the microphone icon in browser toolbar and check if it's enabled.`
+        `Failed to enable microphone: ${err.message}\nLook for the microphone icon in browser toolbar and check if it's enabled.`,
       );
       return null;
     });

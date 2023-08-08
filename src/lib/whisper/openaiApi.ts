@@ -5,7 +5,7 @@ const whisperApiEndpoint = "https://api.openai.com/v1/audio/";
 export async function requestWhisperOpenaiApi(
   file: File,
   mode: "transcriptions" | "translations" = "transcriptions",
-  opts: Record<string, any> = {}
+  opts: Record<string, any> = {},
 ) {
   // Whisper only accept multipart/form-data currently
   const body = new FormData();

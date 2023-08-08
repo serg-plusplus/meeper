@@ -11,6 +11,7 @@ import {
   FormEventHandler,
   useRef,
 } from "react";
+import classNames from "clsx";
 import { AlertTriangleIcon, AlertCircleIcon, Loader2Icon } from "lucide-react";
 import { Separator } from "@radix-ui/react-separator";
 import { Button } from "./ui/button";
@@ -29,6 +30,7 @@ import { WEBSITE_URL } from "../config/env";
 import {
   InvalidApiKeyError,
   NoApiKeyError,
+  NonWorkingApiKeyError,
   getOpenAiApiKey,
   setOpenAiApiKey,
   validateApiKey,
@@ -41,7 +43,10 @@ import {
 import { useToast } from "./ui/use-toast";
 import { ToastAction } from "./ui/toast";
 
-export type ApiKeyDialogState = [boolean, Dispatch<SetStateAction<boolean>>];
+export type ApiKeyDialogState = [
+  string | null,
+  Dispatch<SetStateAction<string | null>>,
+];
 
 const apiKeyDialogCtx = createContext<ApiKeyDialogState | null>(null);
 
@@ -52,7 +57,7 @@ export function useApiKeyState() {
   const [apiKeyEntered, setApiKeyEntered] = useState(false);
 
   const openApiKeyDialog = useCallback(
-    () => setApiKeyDialogOpened(true),
+    () => setApiKeyDialogOpened("default"),
     [setApiKeyDialogOpened],
   );
 
@@ -76,6 +81,7 @@ export function useApiKeyState() {
 export function useNoApiKeyToast() {
   const { toast } = useToast();
   const [_, setApiKeyDialogOpened] = useApiKeyDialog();
+  const focusedRef = useRef(false);
 
   const toastRef = useRef(toast);
   useEffect(() => {
@@ -85,41 +91,77 @@ export function useNoApiKeyToast() {
   const latestToastInstanceRef = useRef<any>();
 
   const apiKeyToast = useCallback((err?: any) => {
+    if (!focusedRef.current) {
+      focusedRef.current = true;
+      focusCurrentTab();
+    }
+
     latestToastInstanceRef.current?.dismiss();
 
     const noApiKeyError =
       err &&
       (err instanceof InvalidApiKeyError || err instanceof NoApiKeyError);
 
-    const t = toastRef.current({
-      ...(noApiKeyError
-        ? {
-            title: (
-              <div className="flex items-center space-x-2">
-                <AlertTriangleIcon className="h-4 w-auto" />
-                <span>API key not set or invalid!</span>
-              </div>
-            ) as any,
-            description: "You have to set OpenAI API Key to use Meeper.",
-            action: (
-              <ToastAction
-                altText="Set OpenAI API Key"
-                onClick={() => setApiKeyDialogOpened(true)}
-              >
-                Set API Key
-              </ToastAction>
-            ),
-          }
-        : {
-            title: (
-              <div className="flex items-center space-x-2">
-                <AlertTriangleIcon className="h-4 w-auto" />
-                <span>Error!</span>
-              </div>
-            ) as any,
-            description: err?.message || "Unknown error occurred.",
-          }),
-    });
+    const noWorkingApiKeyError = err && err instanceof NonWorkingApiKeyError;
+
+    const t = toastRef.current(
+      (() => {
+        switch (true) {
+          case noApiKeyError:
+            return {
+              title: (
+                <div className="flex items-center space-x-2">
+                  <AlertTriangleIcon className="h-4 w-auto" />
+                  <span>API key not set or invalid!</span>
+                </div>
+              ) as any,
+              description: "You have to set OpenAI API Key to use Meeper.",
+              action: (
+                <ToastAction
+                  altText="Set OpenAI API Key"
+                  onClick={() => setApiKeyDialogOpened("default")}
+                >
+                  Set API Key
+                </ToastAction>
+              ),
+            };
+
+          case noWorkingApiKeyError:
+            return {
+              title: (
+                <div className="flex items-center space-x-2 text-red-600">
+                  <AlertTriangleIcon className="h-4 w-auto" />
+                  <span>
+                    Error!
+                    <br />
+                    Troubles with existing API Key.
+                  </span>
+                </div>
+              ) as any,
+              description: err?.message || "Unknown error occurred.",
+              action: (
+                <ToastAction
+                  altText="Details"
+                  onClick={() => setApiKeyDialogOpened("error")}
+                >
+                  Details
+                </ToastAction>
+              ),
+            };
+
+          default:
+            return {
+              title: (
+                <div className="flex items-center space-x-2">
+                  <AlertTriangleIcon className="h-4 w-auto" />
+                  <span>Error!</span>
+                </div>
+              ) as any,
+              description: err?.message || "Unknown error occurred.",
+            };
+        }
+      })(),
+    );
     latestToastInstanceRef.current = t;
 
     return t;
@@ -129,14 +171,14 @@ export function useNoApiKeyToast() {
 }
 
 export function ApiKeyDialogProvider({ children }: PropsWithChildren) {
-  const ctxState = useState<boolean>(false);
+  const ctxState = useState<string | null>(null);
   const setOpened = ctxState[1];
 
   useEffect(() => {
     getOpenAiApiKey().catch(() => {
       if (location.hash.includes("welcome")) return;
 
-      setOpened(true);
+      setOpened("default");
     });
   }, []);
 
@@ -159,19 +201,31 @@ function ApiKeyDialog() {
   }, [opened]);
 
   return (
-    <Dialog open={opened} onOpenChange={setOpened}>
+    <Dialog
+      open={Boolean(opened)}
+      onOpenChange={(open) => setOpened(open ? "default" : null)}
+    >
       <ApiKeyDialogContent
         key={String(opened)}
-        onClose={() => setOpened(false)}
+        state={opened}
+        onClose={() => setOpened(null)}
       />
     </Dialog>
   );
 }
 
-function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
+function ApiKeyDialogContent({
+  onClose,
+  state,
+}: {
+  onClose: () => void;
+  state: string | null;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
+
+  const errorState = state === "error";
 
   const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
     async (evt) => {
@@ -224,47 +278,66 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
           </DialogTitle>
           <DialogDescription asChild>
             <div>
-              <ul className="list-disc pl-4 text-left space-y-2">
-                <li>You need an OpenAI API Key to use Meeper.</li>
-                <li>
-                  Your API Key is stored locally on your browser and encrypted,
-                  and never sent anywhere else.
-                </li>
-                <li>
-                  Meeper uses Whisper to transcribe & ChatGPT for summary.{" "}
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href="https://openai.com/pricing"
-                    className="font-medium hover:underline"
-                  >
-                    Pricing related to OpenAI
-                  </a>
-                  .
-                </li>
-              </ul>
+              {errorState && (
+                <div className="mb-2">
+                  <h4 className="text-red-500">
+                    Error! Your current API key is functioning incorrectly.
+                  </h4>
+                </div>
+              )}
 
-              <div className="mt-4 rounded-lg border pb-4 px-4">
-                <ul className="list-decimal pl-4">
+              {!errorState && (
+                <ul className="list-disc pl-4 text-left space-y-2">
+                  <li>You need an OpenAI API Key to use Meeper.</li>
                   <li>
-                    <span className="mr-1 text-primary">→</span>
-                    <Button
-                      variant="link"
-                      className="px-0 text-blue-500"
-                      asChild
-                    >
-                      <a
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href="https://platform.openai.com/account/api-keys"
-                      >
-                        Get your API key from Open AI dashboard.
-                      </a>
-                    </Button>
+                    Your API Key is stored locally on your browser and
+                    encrypted, and never sent anywhere else.
                   </li>
                   <li>
+                    Meeper uses Whisper to transcribe & ChatGPT for summary.{" "}
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://openai.com/pricing"
+                      className="font-medium hover:underline"
+                    >
+                      Pricing related to OpenAI
+                    </a>
+                    .
+                  </li>
+                </ul>
+              )}
+
+              <div
+                className={classNames(
+                  "mt-4 rounded-lg border pb-4 px-4",
+                  errorState && "pt-4",
+                )}
+              >
+                <ul className="list-decimal pl-4">
+                  {!errorState && (
+                    <li>
+                      <span className="mr-1 text-primary">→</span>
+                      <Button
+                        variant="link"
+                        className="px-0 text-blue-500"
+                        asChild
+                      >
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://platform.openai.com/account/api-keys"
+                        >
+                          Get your API key from Open AI dashboard.
+                        </a>
+                      </Button>
+                    </li>
+                  )}
+                  <li>
                     <div className="text-primary">
-                      <AlertCircleIcon className="inline-flex items-center -mt-0.5 mr-1 h-3.5 w-3.5 text-yellow-500" />
+                      {!errorState && (
+                        <AlertCircleIcon className="inline-flex items-center -mt-0.5 mr-1 h-3.5 w-3.5 text-yellow-500" />
+                      )}
                       <span className="font-medium">
                         Make sure you have your billing info added in{" "}
                         <a
@@ -280,8 +353,33 @@ function ApiKeyDialogContent({ onClose }: { onClose: () => void }) {
                       Without billing info, your API key will not work.
                     </div>
                   </li>
+                  {errorState && (
+                    <li className="text-primary">
+                      <span className="font-medium">
+                        Try to{" "}
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://platform.openai.com/account/api-keys"
+                          className="text-blue-500 hover:underline"
+                        >
+                          create new Secret Key
+                        </a>
+                        .
+                      </span>{" "}
+                      Sometimes, you need to create a new one after adding
+                      billing information or in other cases.
+                    </li>
+                  )}
                 </ul>
               </div>
+
+              {errorState && (
+                <div className="mt-1 text-xs">
+                  If you have already completed the steps described below, you
+                  can safely close this popup and continue using Meeper.
+                </div>
+              )}
             </div>
           </DialogDescription>
         </DialogHeader>
