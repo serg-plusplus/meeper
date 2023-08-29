@@ -123,15 +123,16 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
                 <>
                   <p>{summary}</p>
 
-                  {/* <Button
+                  <Button
                     type="button"
+                    size="sm"
                     disabled={generatingSummary}
                     onClick={() => generateSummary()}
                   >
                     {!generatingSummary ? (
                       <>
                         <IndentIcon className="mr-2 h-4 w-4" />
-                        Genearate summary
+                        Generate once more
                       </>
                     ) : (
                       <>
@@ -139,7 +140,7 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
                         Generating...
                       </>
                     )}
-                  </Button> */}
+                  </Button>
                 </>
               ) : (
                 <Card>
@@ -231,7 +232,7 @@ function CopyToCB({ text }: { text: string }) {
       className={classNames(
         "absolute bottom-0 right-0",
         copying && "opacity-50",
-        copied && "pointer-events-none"
+        copied && "pointer-events-none",
       )}
       onClick={handleClick}
     >

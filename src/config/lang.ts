@@ -8,3 +8,7 @@ export const WHISPER_LANG_LIST = (() => {
 
   return codes.map((code, i) => ({ code, name: langs[i] }));
 })();
+
+export const WHISPER_LANG_MAP = new Map(
+  WHISPER_LANG_LIST.map(({ code, name }) => [code, name]),
+);
