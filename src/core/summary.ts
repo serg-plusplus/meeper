@@ -1,70 +1,94 @@
-import { OpenAI } from "langchain/llms/openai";
-import { loadSummarizationChain } from "langchain/chains";
-import { CharacterTextSplitter } from "langchain/text_splitter";
-import { PromptTemplate } from "langchain";
-
+// New imports for modern langchain
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { getOpenAiApiKey } from "./openaiApiKey";
 import { WHISPER_LANG_MAP } from "../config/lang";
 
 export async function getSummary(content: string[]) {
   const openAIApiKey = await getOpenAiApiKey();
 
-  const model = new OpenAI({
-    temperature: 0,
+  const model = new ChatOpenAI({
+    modelName: "gpt-4o", // Use a stronger model if possible
     openAIApiKey,
-    // maxTokens: 2_048,
+    temperature: 0.2,
     timeout: 120_000,
-    modelName: "gpt-3.5-turbo",
-    maxRetries: 3,
   });
-  const textSplitter = new CharacterTextSplitter({
-    chunkSize: 3_000,
+
+  const textSplitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 3000,
     chunkOverlap: 200,
   });
 
   const contentFull = content.join("\n");
 
   const chunks = await textSplitter.splitText(contentFull);
-  const docs = await textSplitter.createDocuments(chunks);
+  const docs = chunks.map((text) => ({ pageContent: text }));
 
   const detected = await chrome.i18n.detectLanguage(contentFull);
   const langCode = detected.languages?.[0]?.language?.toLowerCase();
-  const lang = WHISPER_LANG_MAP.get(langCode);
+  const lang = WHISPER_LANG_MAP.get(langCode) ?? "English";
 
-  const combinePrompt = new PromptTemplate({
-    template: getCombinePromptTempalte(lang),
-    inputVariables: ["text"],
-  });
-  const combineMapPrompt = new PromptTemplate({
-    template: getCombineMapPromptTempalte(lang),
-    inputVariables: ["text"],
-  });
+  // Better prompt templates
+  const mapPrompt = PromptTemplate.fromTemplate(`
+You are assisting in summarizing a meeting. Summarize the following part of a meeting transcript in ${lang}:
 
-  const chain = loadSummarizationChain(model, {
-    type: "map_reduce",
-    combinePrompt,
-    combineMapPrompt,
-  });
-  const res = await chain.call({
-    input_documents: docs,
-  });
+Instructions:
+- Focus on main points, key discussions, and important actions mentioned.
+- Be concise but capture important ideas.
+- Bullet points preferred.
+- Ignore small talk or irrelevant conversation.
 
-  return res.text as string;
+Meeting Segment:
+------------
+{text}
+------------
+
+  `);
+
+  const combinePrompt = PromptTemplate.fromTemplate(`
+You are an expert meeting assistant. Create a professional, organized summary of the full meeting based on these partial summaries in ${lang}.
+
+Instructions:
+- Group information into three sections: Topics Discussed, Key Decisions, Action Items.
+- Keep the language formal and easy to read.
+- Bullet points for each section.
+- If specific speakers are mentioned in the partial summaries, retain attribution (e.g., \"Anna suggested...\").
+- Focus on outcomes and next steps. Ignore small talk.
+
+Partial Summaries:
+------------
+{text}
+------------
+
+  `);
+
+  // Build pipeline manually
+  const mapChain = mapPrompt
+    .pipe(model)
+    .pipe(async (res) => (res.content as string).trim());
+
+  const combineChain = combinePrompt
+    .pipe(model)
+    .pipe(async (res) => (res.content as string).trim());
+
+  const summarizationChain = RunnableSequence.from([
+    async (
+      docs: {
+        pageContent: string;
+      }[],
+    ) => {
+      const mapped = await Promise.all(
+        docs.map((doc) => mapChain.invoke({ text: doc.pageContent })),
+      );
+      const joined = mapped.join("\n\n");
+      return { text: joined };
+    },
+    combineChain,
+  ]);
+
+  const finalSummary = await summarizationChain.invoke(docs);
+
+  return finalSummary;
 }
-
-const getCombinePromptTempalte = (
-  lang = "English",
-) => `Write a concise summary of the following text in ${lang}.
-Return your response in bullet points which covers the key points of the text.
-------------
-{text}
-------------`;
-
-const getCombineMapPromptTempalte = (
-  lang = "English",
-  targetLen = 500,
-) => `Write a concise summary in ${lang} within ${targetLen} words of the following:
-------------
-{text}
-------------
-Highlight agreements and follow-up actions`;

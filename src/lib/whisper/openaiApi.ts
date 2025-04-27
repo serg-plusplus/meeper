@@ -10,7 +10,7 @@ export async function requestWhisperOpenaiApi(
   // Whisper only accept multipart/form-data currently
   const body = new FormData();
   body.append("file", file);
-  body.append("model", "whisper-1");
+  body.append("model", "gpt-4o-transcribe");
 
   if (mode === "transcriptions" && opts.language) {
     body.append("language", opts.language);
@@ -33,7 +33,7 @@ export async function requestWhisperOpenaiApi(
 
   const response = await axios.post(whisperApiEndpoint + mode, body, {
     headers,
-    timeout: 20_000,
+    timeout: 30_000,
   });
 
   return response.data.text as string;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import classNames from "clsx";
 import { Loader2, IndentIcon } from "lucide-react";
+import Markdown from "react-markdown";
 
 import { getSummary } from "../core/summary";
 import { DBContent, DBRecord, dbContents, dbRecords } from "../core/db";
@@ -121,7 +122,9 @@ export default function ExplorePage({ recordId }: { recordId: string }) {
 
               {summary ? (
                 <>
-                  <p>{summary}</p>
+                  <p>
+                    <Markdown>{summary}</Markdown>
+                  </p>
 
                   <Button
                     type="button"

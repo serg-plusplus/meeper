@@ -4,10 +4,10 @@ export function detectSpeechEnd({
   audioCtx,
   stream,
   voiceMinDecibels = -50,
-  initialSpeedupDelay = 4_000,
-  initialInterval = 55,
-  intervalSpeedupStep = 5,
-  delaySpeedupStep = 1_500,
+  initialSpeedupDelay = 10_000,
+  initialInterval = 150,
+  intervalSpeedupStep = 10,
+  delaySpeedupStep = 1_000,
   onSpeechStart,
   onSpeechEnd,
 }: {
@@ -36,7 +36,7 @@ export function detectSpeechEnd({
     speedupIntervalTimeout = setTimeout(
       setIntervalAndDefer,
       delay,
-      interval - intervalSpeedupStep
+      interval - intervalSpeedupStep,
     );
   };
 
