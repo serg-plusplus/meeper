@@ -1,6 +1,6 @@
 {
   "name": "@pas1ko/meeper",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "scripts": {
     "start": "cross-env NODE_ENV=development node bundle",
